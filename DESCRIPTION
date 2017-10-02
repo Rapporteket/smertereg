@@ -5,6 +5,7 @@ Authors@R: "Janne Mannseth <janne.mannseth@helse-bergen.no> [aut, cre]"
 Description: R-kode for rapporter som skal ut på Rapporteket
 Depends: R (>= 3.4.1)
 License: GPL-2
+Encoding: UTF-8
 LazyData: true
 Import:
   forcats,
