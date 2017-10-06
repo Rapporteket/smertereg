@@ -1,0 +1,1021 @@
+\documentclass{article} 
+
+%% Get access to more mathematical symbols:
+\usepackage{mathtools}
+%% Enable the use of utf-8 characters:
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+%\usepackage[norsk]{babel} %% "english" can e.g. be replaced with "norsk".
+%% Adjust the margins of the paper:
+\usepackage{geometry} \geometry{ a4paper, total={210mm,297mm},
+  left=20mm, right=20mm, top=20mm, bottom=20mm, bindingoffset=0mm }
+%% Get rid of the indentation at the beginning of a paragraph:
+\usepackage[parfill]{parskip}
+%%  Simplify the task of introducing references.
+\usepackage{fancyref}
+%% Enable the use of links in the document:
+\usepackage{hyperref} 
+\usepackage{longtable}
+\usepackage{booktabs}
+
+\begin{document}
+%\SweaveOpts{concordance=TRUE}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%Første R-del
+<<label = pakker, echo = FALSE, include = FALSE>>=
+#Første chunk for å hente inn nødvendige pakker og data
+
+# Ikkje gjer om tekst til faktorar automatisk
+options(stringsAsFactors=FALSE)
+
+# Nødvendige pakker
+library(tidyverse)
+library(zoo)
+library(lubridate)
+library(forcats)
+library(stringr)
+library(printr) # finnes per i dag ikke på CRAN. https://github.com/yihui/printr for å hente ned. 
+library(readr)
+library(magrittr)
+
+#knit_theme$set("kvalreg-stilsett")
+
+@
+
+<<label = funksjoner, echo = FALSE, include = FALSE>>=
+
+# Hente inn fellefunksjoner. pass på at encoding = "utf-8"
+source("H:/SmerteReg/R/Fra SKF/felles_funksjoner.R", encoding = "utf-8")
+
+# Lesing av datadumpar og kodeøker
+source("H:/SmerteReg/R/Fra SKF/kodebok-oqr.R", encoding = "utf-8")
+
+@
+
+<<label = datadump, echo = FALSE, include = FALSE>>=
+
+#FIX alt dette må endres etter hvordan det ligger lokalt? Dette gjelder Helse Bergen
+
+# Hovudmappa der alt ligg
+mappe = "\\\\ihelse.net\\Kvalitetsregister\\HBE\\2014-00752\\OpenQReg\\"
+
+# Finn den nyaste mappa med datadumpar
+adresse = paste0(mappe, "datadumper\\test-lokal-bergen\\") # ev. prod\\Lokale data\\Datadump Alle Variable Numerisk\\
+#adresse = paste0(mappe, "datadumper\\prod\\Lokale data\\Datadump Alle Variable Numerisk\\")
+
+ddmappe = list.dirs(adresse) %>% sort %>% last
+
+# Les inn kodebok
+# fixme: Last automatisk ned og lagra kodebok dersom
+#        ho er (mykje) eldre enn datadumpen
+#        Bruk kodebok frå http://test.helseregister.no/smerte/klokeboken?exploding_lists=true&sanitize_headers=true
+#        og lagra i \\ihelse.net\Kvalitetsregister\HBE\2014-00752\OpenQReg\kodebok
+kodebok_filnamn = "SmerteReg_klokeboken.csv_25.08.2017.csv"
+kb = les_oqr_kb(paste0(mappe, "kodebok\\", kodebok_filnamn))
+
+
+# Les inn hovuddatasettet og diagnosedatasettet ved hjelp av kodeboka
+d_full = les_dd_oqr(paste0(ddmappe, "\\", "Datadump_Alle_variabler_numerisk.csv"), kb)
+
+# Legg til variabel for pasientid og forlopisid (som manglar i kodeboka),
+# sidan skriptet tydelegvis brukar dette (fixme)
+d_full = d_full %>% 
+  mutate(pasientid = oqr_pasientid,
+         forlopsid = oqr_forlopsid)
+
+# årets år
+aar = year(Sys.Date())
+
+d_full = d_full %>% filter(year(mce_registered_date) == aar)
+
+# Legg inn navn på avdelinger
+
+d_full = d_full %>% mutate(avdeling_navn = case_when(emp11_department == 4 ~  "Medisinsk p1 Nord",    #Her begynner Helse Bergen
+                                                     emp11_department == 5 ~ "Medisinsk\navd.1 Vest",
+                                                     emp11_department == 6 ~ "Barneklinikken p4",
+                                                     emp11_department == 7 ~ "Barneklinikken p5",
+                                                     emp11_department == 8 ~ "Hjerte p3 MIO",
+                                                     emp11_department == 8 ~ "Hjerte p3 MIO", 
+                                                     emp11_department == 9 ~ "Hjerte p4", 
+                                                     emp11_department == 10 ~ "Hjerte p1",
+                                                     emp11_department == 11 ~ "Hjert p2",
+                                                     emp11_department == 12 ~ "Hud sengepost",  
+                                                     emp11_department == 13 ~ "Bryst- og\nendokrin",
+                                                     emp11_department == 14 ~ "Gastro og\nakutt p1",
+                                                     emp11_department == 15 ~ "Gastro og\nakutt p3", 
+                                                     emp11_department == 16 ~ "Karkirurgi", 
+                                                     emp11_department == 17 ~ "Plastikkirurgi",
+                                                     emp11_department == 18 ~ "Plastikkirurgi og BSA",
+                                                     emp11_department == 19 ~ "Urologi",  
+                                                     emp11_department == 20 ~ "Øre, nese, hals",
+                                                     emp11_department == 21 ~ "Lunge p3",
+                                                     emp11_department == 22 ~ "Lunge p1", 
+                                                     emp11_department == 23 ~ "Korttidspost\nmottak",
+                                                     emp11_department == 24 ~ "Nevrokirurgisk\nsengep",
+                                                     emp11_department == 25 ~ "Nevrologisk p3", 
+                                                     emp11_department == 26 ~ "Nevrologisk p4\nSpinal", 
+                                                     emp11_department == 27 ~ "Nevrologisk p2\nSlag",
+                                                     emp11_department == 28 ~"OT Rehab sengepost",
+                                                     emp11_department == 29 ~ "OT p1",  
+                                                     emp11_department == 30 ~ "OT p2 vest",
+                                                     emp11_department == 31 ~ "OT p2 syd",
+                                                     emp11_department == 32 ~ "Medisinsk p6", 
+                                                     emp11_department == 33 ~ "Medisinsk p5 vest",  
+                                                     emp11_department == 34 ~ "Medisinsk p5 nord",
+                                                     emp11_department == 35 ~ "Intensivmedisinsk",
+                                                     emp11_department == 36 ~ "KK Gyn 1", 
+                                                     emp11_department == 37 ~ "KK Gyn 2",
+                                                     emp11_department == 38 ~ "Medisinsk\navd.2 Dialyse",
+                                                     emp11_department == 39 ~ "Reuma sengepost", 
+                                                     emp11_department == 41 ~ "OT barn",
+                                                     emp11_department == 42 ~ "Gastro Barn",
+                                                     emp11_department == 43 ~ "ØNH barnekirurgen p1",  
+                                                     emp11_department == 44 ~ "AFMR p2",
+                                                     emp11_department == 77 ~ "Medisinsk avd.8",
+                                                     emp11_department == 85 ~ "Øyeavdeling", 
+                                                     emp11_department == 86 ~"Utgreiingsmottak 1",
+                                                     emp11_department == 87 ~ "Utgreiingsmottak 2", 
+                                                     emp11_department == 152 ~ "Barne- og Ungdomsklinikken p4",
+                                                     emp11_department == 153 ~ "Barne- og Ungdomsklinikken p5", #Her slutter Helse Bergen
+                                                     emp11_department == 90 ~ "Barn 1 medisin sengepost",       #Her begynner St.Olav
+                                                     emp11_department == 91 ~ "Barn 2 kirurgi sengepost", 
+                                                     emp11_department == 92 ~ "Barn 3 infeksjon sengepost",
+                                                     emp11_department == 93 ~ "Barn 4 kreft-og blodsykdommer",
+                                                     emp11_department == 94 ~ "Barn 5 ortopedi sengepost",
+                                                     emp11_department == 95 ~ "Barsel vest",
+                                                     emp11_department == 96 ~ "Barsel øst",
+                                                     emp11_department == 97 ~ "Generell gynekologi",
+                                                     emp11_department == 98 ~ "Gynekologi kreft sengepost",
+                                                     emp11_department == 99 ~ "Kvinneklinikken overvåking",
+                                                     emp11_department == 100 ~ "Kirurgi bryst-endo 5 et tun 1",
+                                                     emp11_department == 101 ~ "Elektiv ortopedi sengepost",
+                                                     emp11_department == 102 ~ "Plastikkirurgisk sengepost",
+                                                     emp11_department == 103 ~ "Revmatologisk sengepost",
+                                                     emp11_department == 104 ~ "Kirurgi kar 5. et tun 1-2",
+                                                     emp11_department == 105 ~ "Kirurgi Gastro 4 et tun 3-4",
+                                                     emp11_department == 106 ~ "Kirurgi Gastro 5 et tun 3-5",
+                                                     emp11_department == 107 ~ "Kirurgisk tung overvåking",
+                                                     emp11_department == 108 ~ "Kirurgi urologi sengepost",
+                                                     emp11_department == 109 ~ "Kreft dagenhet et M2",
+                                                     emp11_department == 110 ~ "Kreft sengepost etg M3",
+                                                     emp11_department == 111 ~ "Kreft sengepost lindrende behandling",
+                                                     emp11_department == 112 ~ "Sengepost blodsykdommer",
+                                                     emp11_department == 113 ~ "Sengepost fordøyelse- og leversykdommer",
+                                                     emp11_department == 114 ~ "Sengepost nyresykdommer og endokrinologi",
+                                                     emp11_department == 115 ~ "Mottaksavdeling observasjonspost 1",
+                                                     emp11_department == 116 ~ "Mottaksavdeling observasjonspost 2",
+                                                     emp11_department == 117 ~ "Mottaksavdeling sengepost",
+                                                     emp11_department == 118 ~ "Hovedintensiv",
+                                                     emp11_department == 119 ~ "Hjertemedisin intensiv 4. et.",
+                                                     emp11_department == 120 ~ "Lungemedisin 5. et. tun 3 dagenhet",
+                                                     emp11_department == 121 ~ "Lungemedisin 6. et. tun 4-5",
+                                                     emp11_department == 122 ~ "Lungemedisin 6. et. tun 2-3",
+                                                     emp11_department == 123 ~"Lungemedisin 6. et. tun 1",
+                                                     emp11_department == 124 ~ "Lungemedisin 6. et. overvåking",
+                                                     emp11_department == 125 ~ "Thoraxkirurgi intensiv",
+                                                     emp11_department == 126 ~ "Thoraxkirurgi sengetun",
+                                                     emp11_department == 127 ~ "Sengepost hjerneslag",
+                                                     emp11_department == 128 ~ "Avd for ryggmargsskader sengepost",
+                                                     emp11_department == 129 ~ "Sengepost geriatri",
+                                                     emp11_department == 130 ~ "Kjeve- og ansiktskirurgi sengepost",
+                                                     emp11_department == 131 ~ "ØNH sengepost",
+                                                     emp11_department == 132 ~ "Øye sengepost",                                           
+                                                     emp11_department == 133 ~ "Nevrologisk sengepost",
+                                                     emp11_department == 134 ~ "Nevrokirurgisk sengepost",
+                                                     emp11_department == 135 ~ "Nevroklinikkens overvåking",
+                                                     emp11_department == 136 ~ "Sengepost infeksjonssykdommer",
+                                                     emp11_department == 137 ~ "Hudavdelingens sengepost",
+                                                     emp11_department == 138 ~ "Klinikk for rus og avhengighetsmedisin",
+                                                     emp11_department == 143 ~ "Ortopedisk avdelinge-ortopedisk traumatologi",
+                                                     emp11_department == 144 ~ "Rekonstruktiv ortopedi sengetun",
+                                                     emp11_department == 145 ~ "Ortopedisk postoperativ overvåking",
+                                                     emp11_department == 146 ~ "Hjertemedisin tun 3, 4. et.",
+                                                     emp11_department == 147 ~ "Hjertemedisin tun 4-5, 4. et. Sør",
+                                                     emp11_department == 148 ~ "Hjertemedisin tun 6-7, 4. et. Midt",
+                                                     emp11_department == 149 ~ "Hjertemedisin tun 4-5, 5. et. Sør",
+                                                     emp11_department == 150 ~ "Avdeling Østmarka",
+                                                     emp11_department == 151 ~ "Avdeling Brøset",                #Her slutter St. Olavs
+                                                     emp11_department == 45 ~ "Akuttmottak- og obspostavdeling", #Her begynner UNN
+                                                     emp11_department == 46 ~ "Barne- og ungdomsavdeling",
+                                                     emp11_department == 47 ~ "Barnehabilitering Tromsø",
+                                                     emp11_department == 48 ~ "Barne- og ungdomspsykiatrisk avdeling",
+                                                     emp11_department == 49 ~ "Hjerte- /Lunge- og karkirurgisk avdeling",
+                                                     emp11_department == 50 ~ "Hjertemedisinsk avdeling",
+                                                     emp11_department == 51 ~ "Lungemedisinsk avdeling",
+                                                     emp11_department == 52 ~ "Avdeling for gastroenterologisk kirurgi",
+                                                     emp11_department == 53 ~ "Avdeling for urologi, endokrin og brystkirurgi",
+                                                     emp11_department == 54 ~ "Kreftavdelingen",
+                                                     emp11_department == 55 ~ "Kvinneklinikken",
+                                                     emp11_department == 56 ~ "Gastro- og nyremedisinsk avdeling",
+                                                     emp11_department == 57 ~ "Sengepost for blod- og hormonsykdommer",
+                                                     emp11_department == 58 ~ "Sengepost for geriatri",
+                                                     emp11_department == 59 ~ "Sengepost for infeksjonssykdommer",
+                                                     emp11_department == 60 ~ "Nevro-, hud- og revmatologisk avdeling",
+                                                     emp11_department == 61 ~ "Nevrokirurgi-, ØNH- og øyeavdeling",
+                                                     emp11_department == 62 ~ "Ortopedi- og plastikkirurgisk avdeling",
+                                                     emp11_department == 63 ~ "Fysikalsk- og rehabiliteringsmedisin, Tromsø/Narvik",
+                                                     emp11_department == 64 ~ "Habiliteringsenhet Tromsø",
+                                                     emp11_department == 65 ~ "Intensiv Tromsø",
+                                                     emp11_department == 66 ~ "Oppvåkning Tromsø",
+                                                     emp11_department == 67 ~ "Psykiatri og rusbehandling, LARiNord",
+                                                     emp11_department == 68 ~ "Akuttpsykiatrisk seksjon",
+                                                     emp11_department == 69 ~ "Alderspsykiatrisk seksjon",
+                                                     emp11_department == 70 ~ "Psykose og rusenheten",
+                                                     emp11_department == 71 ~ "RUS-Tverrf.Spes. Beh. av rusmiddelmisbruk",
+                                                     emp11_department == 72 ~ "Sikkerhetspsykiatrisk seksjon",
+                                                     emp11_department == 73 ~ "Rusbehandling, Færingen",
+                                                     emp11_department == 74 ~ "Rusbehandling, ReStart",
+                                                     emp11_department == 75 ~ "Senter for psykisk helse og rusbehandling Tromsø og omegn, døgnseksjon",
+                                                     emp11_department == 76 ~ "Psykiatri og rusbehandling, avrusning og utredning", 
+                                                     
+                                                     FALSE ~ "Uspesifisert"),
+                           tilsett = case_when(mce_supervision == 1 ~ "Ja", 
+                                              mce_supervision == 2 ~ "Nei - ikke behov", 
+                                              mce_supervision == 3 ~ "Nei - ikke kapasitet", 
+                                              mce_supervision == 4 ~ "Nei - ikke prioritert, men gitt råd",
+                                              mce_supervision == 5 ~ "Nei - Annen årsak", 
+                                              is.na(mce_supervision) ~ "Mangler verdi", 
+                                              FALSE ~ "Annet"))
+
+# Finne fordelingen av antall tilsyn per avdeling, fordelt på de ulike formene for tilsyn
+
+# Først gather for å gjøre data "long" og typene tilsyn blir kategoriene i en variabel. Disse endres til norske navn
+# samtidig må datoene også bli long slik at man får inn datoene per forløp. 
+# Bytter ut dem som er missing med 0, siden det er da 0 tilsyn. 
+# I tillegg lager vi en variabel for måneder, og en med årsaker til at pasienten ikke har fått tilsyn 
+
+tilsyn_full = d_full %>% select(pasientid, forlopsid, emp22_caregiver_doctor_times, emp22_caregiver_psychologist_times, 
+                           emp22_caregiver_social_worker_times, avdeling_navn, mce_supervision, tilsett, 
+                           emp22_caregiver_nurse_times, emp22_caregiver_physiotherapist_times, emp11_department, 
+                           emp22_consultations, mce_registered_date) %>% 
+                           gather(key = tilsynstype, value=antall, 
+                           emp22_caregiver_doctor_times, emp22_caregiver_psychologist_times, 
+                           emp22_caregiver_social_worker_times, 
+                           emp22_caregiver_nurse_times, emp22_caregiver_physiotherapist_times,
+                           emp22_consultations) %>% 
+                           mutate(antall = replace(antall, is.na(antall), 0), 
+                           month = month(mce_registered_date),
+                                                 
+                     tilsynstype=str_replace_all(tilsynstype,"emp22_caregiver_doctor_times", 
+                                                 "Lege"),
+                     tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_nurse_times",
+                                                 "Sykepleier"), 
+                     tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_physiotherapist_times", 
+                                                 "Fysioterapeut"),
+                     tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_psychologist_times", 
+                                                  "Psykolog"),
+                     tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_social_worker_times", 
+                                                  "Sosionom"),
+                     tilsynstype=str_replace_all(tilsynstype, "emp22_consultations", 
+                                                  "Total"),
+                     yearmonth = as.yearmon(mce_registered_date))
+
+
+# Lage månedsnavn i rekkefølge slik som de er i året
+
+manednamn = months(as.Date(paste0("2017-",1:12,"-01")))
+
+tilsyn_full = tilsyn_full %>% mutate(monthname = factor(months(mce_registered_date), levels = manednamn)) 
+
+# Filtrer på de som har fått tilsyn
+
+tilsyn = tilsyn_full %>% filter(mce_supervision == 1)
+
+# Det viser seg at man kan ha 0 totale tilsyn til tross pasienten har tilsett = ja,
+# og ha tilsyn på andre typer (lege, sykepleier osv.) til tross 
+# tilsett = nei. Dette er hvis legen (eller andre behandlere) har 
+# kommet bort  til avdelingen, men pasienten
+# er bevisstløs eller lignende. 
+
+# Med koden nedenfor kan vi sjekke at ingen har svart "ja" som ikke har en verdi for "Totale" tilsyn
+# og identifisere hvem det er
+
+# tilsyn %>% filter(mce_supervision == 1, antall == 0, tilsynstype == "Total")
+# 
+# ingentilsyn_pers = tilsyn %>% 
+#   filter(pasientid == "261"|  pasientid == "279" | 
+#          pasientid == "285" | pasientid =="336") %>% 
+#   select(pasientid, forlopsid, tilsynstype, antall) %>% arrange(pasientid)
+
+
+# regne ut frekvens av hver "antall"-kategori for hver avdeling
+
+tilsyn_avdeling = tilsyn %>% group_by(tilsynstype, emp11_department, avdeling_navn)  %>% count(antall) %>% ungroup %>% 
+              mutate(emp11_department=fct_reorder(factor(emp11_department), -n, sum))
+
+# Antall tilsyn for pasienter som kom in in viss måned
+
+# fixme! skal måneder baseres på startdato eller dato for registrering (utfylling av skjema)?
+
+tilsyn_maned = tilsyn %>% group_by(tilsynstype, month, monthname)  %>% count(antall) %>% arrange(month)
+
+#Totalt Antall tilsyn for pasienter som kom in in viss måned per avdeling
+
+tilsyn_maned_avdeling = tilsyn %>% group_by(tilsynstype, monthname, emp11_department)  %>% count(antall) 
+
+@
+
+<<label = rapport, echo = FALSE, include = FALSE>>=
+
+#Søylediagram over antall tilsyn per måned. Med argumentet maaned = "Alle"
+# får man en figur med plots for hver måned.
+
+plot_tilsyn_maned = function(d, maaned, type_tilsyn, xlabtekst){
+
+  if (type_tilsyn == "Alle") {
+      d = d %>% filter(tilsynstype != "Total", antall != 0)
+  } else {
+     d = d %>% filter(tilsynstype==type_tilsyn) 
+  }
+  
+  if (type_tilsyn == "Fysioterapeut" | type_tilsyn == "Psykolog" | type_tilsyn == "Sosionom" | type_tilsyn == "Total") {
+      d = d %>% filter(antall != 0)
+  } else {
+     d = d 
+  }
+
+  
+  graf0 = ggplot(d, aes(x = antall, y =  n, fill=monthname)) + 
+  scale_x_continuous(breaks=breaks_bredde(5), expand=c(0,.5))+
+  geom_bar(stat='identity', width=2/3, fill="Hotpink3") + 
+  tema + fjern_x +
+  xlab(xlabtekst) + ylab("Antall pasienter")
+
+  
+if(maaned == "Alle"){ 
+
+  graf0 + facet_wrap(~monthname, ncol = 4)
+}
+  
+else{
+
+  
+  d_maned = d %>% filter(monthname == maaned)
+  graf0 %+% d_maned
+  
+  }
+  
+  
+}
+
+
+#Søylediagram over antall tilsyn per avdeling. Med argumentet avdeling = "Alle"
+# får man en figur med plots for hver avdeling.
+
+plot_tilsyn_avdeling = function(d, type_tilsyn, avdeling, xlabtekst){
+  
+  # For å lage en rekkefølge på avdelingene basert på antall tilsyn
+avdeling_hypp = d %>% 
+  group_by(emp11_department, avdeling_navn) %>% 
+  summarise(mean_n = mean(n)) %>%  
+  arrange(desc(mean_n)) %>%
+  extract2("avdeling_navn") %>% 
+  as.character %>% unique # Eg måtte setta inn unique() for å få ting til å verka 2017-06-01,
+                          # men det gjev inga meining, KOH (fixme, Lena)
+
+  d = d %>% mutate(avdeling_navn=factor(avdeling_navn, levels=avdeling_hypp))
+
+  # For å fjerne avdelinger som har veldig få tilsyn
+  d = d %>% 
+  group_by(avdeling_navn) %>% 
+  mutate(maksn = max(n)) %>%
+  filter(maksn>5) %>%
+  ungroup
+  
+  if (type_tilsyn == "Alle") {
+      d = d %>% filter(tilsynstype != "Total", antall != 0)
+  } else {
+     d = d %>% filter(tilsynstype==type_tilsyn) 
+  }
+  
+  if (type_tilsyn == "Fysioterapeut" | type_tilsyn == "Psykolog" | type_tilsyn == "Sosionom" | type_tilsyn == "Total") {
+      d = d %>% filter(antall != 0)
+  } else {
+     d = d 
+  }
+  
+  graf0 = ggplot(d ,aes(x = antall, y =  n, fill=avdeling_navn)) + 
+  scale_x_continuous(breaks=breaks_bredde(5), expand=c(0,.5))+
+  geom_bar(stat='identity', width=2/3, fill="Hotpink3") + 
+  tema + fjern_x +
+  xlab(xlabtekst) + ylab("Antall pasienter")
+
+  
+if(avdeling == "Alle"){ 
+
+  graf0 + facet_wrap(~avdeling_navn, ncol = 3)
+}
+  
+else{
+  
+  d_avdeling = d %>% filter(avdeling_navn == avdeling)
+  graf0 %+% d_avdeling
+  
+  }
+  
+}
+
+@
+
+\section{Generell informasjon}
+Formålet med denne rapporten er å kartlegge tilsyn utført av «akuttsmerteteamet» 
+ved sykehusene som deltar i SmerteReg. 
+
+En pasient kan ha fått tilsyn fra
+lege, sykepleier, psykolog, sosionom og fysioterapeut. Flere av behandlerne
+kan ha vært på tilsyn sammen. Det vil si at en pasient kan ha færre tilsyn 
+tilsammen enn summen av de ulike tilsynstypene. Derfor skiller vi mellom
+pasienttilsyn og behandlertilsyn gjennom rapporten.
+Hvis det er registrert at pasienten ikke har pasienttilsyn,
+kan det likevel være registrert behandlertilsyn (av lege, sykepleier osv.).
+Dette er for eksempel tilfelle hvis 
+legen eller andre behandlere har kommet bort  
+til avdelingen mens pasienten har vært bevisstløs.
+
+Først ønsker vi å se hvor mange av pasientene som er registrert
+med tilsyn. Videre ser vi på hva årsakene er til at
+pasientene ikke har fått tilsyn.
+Tabell $1$ viser hvor mange pasienter som har registrert
+at de har fått tilsyn.
+
+<<label = info, echo = FALSE, include = TRUE, results = "asis">>=
+
+# Regne ut antall tilsyn per måned, samt antall behandlertilsyn (summen av alle de andre typene tilsyn)
+# Regne ut antall tilsyn per måned, samt antall behandlertilsyn (summen av alle de andre typene tilsyn)
+arsak_tilsett = d_full %>%  count(tilsett) %>% mutate(pro = round(100*(n/sum(n))))
+
+antall_svar = arsak_tilsett %>% summarise(sum(n))
+antall_pas = arsak_tilsett %>% count(n)
+
+knitr::kable(arsak_tilsett, caption = paste0("Antall besvarelser om tilsyn for hver kategori. 
+                       Basert på ",antall_svar," svar fra ",nrow(tilsyn_full %>% filter(tilsynstype != "Total") %>% distinct(pasientid, .keep_all = TRUE))," pasienter."), col.names = c("Har pasienten fått tilsyn?", "Antall besvarelser", "Prosent besvarelser"), longtable = T)
+
+@
+
+
+
+\section{Tilsyn per måned}
+For å finne ut om antall tilsyn for smertebehandling varierer
+i løpet av året, viser tabell $2$ hvor mange 
+tilsyn det har vært hver måned. 
+
+<<label = a, echo = FALSE, include = FALSE>>=
+
+# Regne ut hvor mange tilsyn som er med per graf. 
+tot_antall =  tilsyn %>% filter(tilsynstype == "Total") %>% 
+        summarise(sum = sum(antall)) # Æsj, summarize funker ikke. Diskriminering!
+
+lege_antall = tilsyn %>% filter(tilsynstype == "Lege") %>% summarise(sum = sum(antall))
+
+syk_antall = tilsyn %>% filter(tilsynstype == "Sykepleier") %>% summarise(sum = sum(antall)) 
+
+fys_antall = tilsyn %>% filter(tilsynstype == "Fysioterapeut") %>% summarise(sum = sum(antall)) 
+
+sos_antall = tilsyn %>% filter(tilsynstype == "Sosionom") %>% summarise(sum = sum(antall)) 
+
+psyk_antall = tilsyn %>% filter(tilsynstype == "Psykolog") %>% summarise(sum = sum(antall)) 
+
+sum_typer_antall = tilsyn %>% filter(tilsynstype != "Total") %>% summarise(sum = sum(antall)) 
+
+@
+
+<<label = b, echo = FALSE, message = FALSE, warning = FALSE, include = TRUE>>=
+# Regne ut antall tilsyn per måned, samt antall behandlertilsyn (summen av alle de andre typene tilsyn)
+library(kableExtra)
+sum_tilsyn_maned = tilsyn %>% 
+                     group_by(tilsynstype, monthname) %>% 
+                     summarise(antall = sum(antall)) %>% 
+                     spread(tilsynstype, antall) %>% rowwise() %>% 
+                     mutate(behandlertilsyn = sum(Fysioterapeut, Lege, Psykolog, Sosionom, Sykepleier))
+
+antall_pas_maned = tilsyn %>% distinct(pasientid, .keep_all = TRUE) %>% count(monthname) 
+
+sum_tilsyn_maned = bind_cols(sum_tilsyn_maned, antall_pas_maned[ ,2])
+
+# Finne summen av hver tilsynstype
+total_tilsyn_maned = summarise_all(sum_tilsyn_maned[,-1], funs(sum))
+
+sum_tilsyn_maned = bind_rows(sum_tilsyn_maned, total_tilsyn_maned)
+
+#Få inn navnet på den nye "måneden"
+levels(sum_tilsyn_maned$monthname)=c(levels(sum_tilsyn_maned$monthname), "total")
+sum_tilsyn_maned$monthname[is.na(sum_tilsyn_maned$monthname)] = "total"
+
+# Bytte på rekkefølgen slik at behandlertilsyn kommer før pasienttilsyn
+sum_tilsyn_maned = sum_tilsyn_maned[,c(1,2,3,4,5,6,8,7,9)]
+
+knitr::kable(sum_tilsyn_maned, caption = paste0("Antall tilsyn per måned hos 
+                       ",nrow(tilsyn %>% filter(tilsynstype != "Total") %>% distinct(pasientid, .keep_all = TRUE))," pasienter. 
+                      Behandlertilsyn er summen av tilsynene fra hver behandler, 
+                      mens pasienttilsyn er antall tilsyn pasientene har mottatt (flere behandlere 
+                      kan ha vært tilstede samtidig)."), col.names = c("Måned", "Fysioterapeut", "Lege", 
+                                                                     "Psykolog", "Sosionom", "Sykepleier", 
+                                                                     "Behandlertilsyn", "Pasienttilsyn", "Antall pasienter")) %>%
+kable_styling(latex_options = c("hold_position", "scale_down"))
+
+@
+
+%\section{Type tilsyn over tid}
+
+Linjediagram egner seg til å vise endringer over tid. 
+Grafene under viser gjennomsnlittlig antall
+tilsyn, med konfidensintervaller, gjennom året.
+
+%Under følger en månedlig oversikt over de ulike type behandler-og pasienttilsyn.
+<<echo = FALSE, include = FALSE>>=
+
+# Gjennomsnittlig antall tilsyn med konfidensintervall per måned
+# Hvis tilsynstype = "All" får man en graf som viser alle tilsynstyper,
+# mens tilsynstype = "Lege" (f.eks) viser et linjediagram for bare legetilsyn per måned. 
+
+linje_tilsyn_per_maaned = function(d, type_tilsyn, ylabtekst){
+
+ d = d %>% mutate(yearmonth_date = as.Date(yearmonth), yearmonth = as.character(yearmonth))
+
+graf0 = ggplot(d, aes(x = yearmonth_date, y  = snitt, ymin = min, ymax = maks)) +
+      geom_line(colour="darkorchid1", size = 1) +   
+      geom_point(size=2, colour="darkorchid1") +     
+      xlab("Måned") + ylab(ylabtekst) +
+      tema + fjern_x + geom_linerange(size=.5, colour="darkorchid1") +
+      theme(axis.text.x  = element_text(angle = 45, vjust = 0.5)) +
+      scale_x_date(date_breaks = "2 month", date_labels = "%Y %b")
+
+if(type_tilsyn == "Alle"){
+
+graf0 + facet_wrap(~tilsynstype, ncol = 3) 
+
+} else{
+  
+  d_tilsyn = d %>% filter(tilsynstype == type_tilsyn)
+  graf0 %+% d_tilsyn + scale_x_date(date_breaks = "1 month", date_labels = "%Y %b")
+  
+}
+
+}
+
+@
+
+
+<<echo = FALSE, include = FALSE>>=
+
+#Figurtekster for linjediagram
+
+total_maaned_linje=paste0("Gjennomsnittlig antall pasienttilsyn per måned (inkludert konfidensintervall). En pasient
+                          kan ha hatt tilsyn fra flere behandlere 
+                          per tilsyn i denne sammenheng. Basert på ",tot_antall$sum," tilsyn hos 
+                          ",nrow(tilsyn %>% filter(tilsynstype == "Total") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+
+alle_maaned_linje=paste0("Antall tilsyn per måned for alle ulike behandlere (inkludert konfidensintervall). Behandlertilsyn er
+                         gjennomsnittlig antall tilsyn fra alle tilsynstyper tilsammen. 
+                        Basert på ",sum_typer_antall$sum," behandlertilsyn,
+                   hos ",nrow(tilsyn %>% filter(tilsynstype != "Total") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+
+@
+
+
+<<echo = FALSE, include = TRUE, message = FALSE, warning = FALSE, fig.cap = total_maaned_linje, fig.show=total_maaned_linje >>=
+
+#Regne ut gjennomsnittlig antall tilsyn per måned med konfidensintervaller
+tilsyn_per_maaned = tilsyn %>% 
+    group_by(tilsynstype, month, yearmonth) %>% 
+  summarise(snitt=mean(antall) %>% round(1),
+            min=t.test(antall)$conf.int[1] %>% round(1),
+            maks=t.test(antall)$conf.int[2] %>% round(1)) %>% ungroup
+
+# lag gjennomsnitt behandlertilsyn per måned
+behandlertilsyn = tilsyn %>% filter(tilsynstype != "Total") %>% group_by(month, yearmonth) %>%   
+                  summarise(snitt=mean(antall) %>% round(1),
+                  min=t.test(antall)$conf.int[1] %>% round(1),
+                  maks=t.test(antall)$conf.int[2] %>% round(1)) %>% mutate (tilsynstype = "Behandlertilsyn") %>% ungroup
+
+# Samle de to objektene
+tilsyn_per_maaned = bind_rows(tilsyn_per_maaned, behandlertilsyn)
+
+# Og av eller annen merkelig grunn endrer yearmon-formatet seg, fiks
+tilsyn_per_maaned$yearmonth = as.yearmon(tilsyn_per_maaned$yearmonth)
+
+# Lage samme rekkefølge på "Alle" graf som alle andre grafer ellers i dokumentet.
+
+tilsyn_per_maaned = tilsyn_per_maaned %>% mutate(tilsynstype =
+                                          factor(tilsynstype, 
+                                                 levels=c("Lege", "Sykepleier", 
+                                                 "Psykolog", "Fysioterapeut", "Sosionom", "Behandlertilsyn", "Total")))
+
+
+#Graf for gjennomsnittlig antall tilsyn per måned
+
+linje_tilsyn_per_maaned(d = tilsyn_per_maaned, type_tilsyn = "Total", ylabtekst = "Gjennomsnittlig\nantall pasienttilsyn")
+
+@
+
+<<echo = FALSE, message = FALSE, warning = FALSE,include = TRUE, fig.cap = alle_maaned_linje, fig.show=total_maaned_linje>>=
+
+linje_tilsyn_per_maaned(d = tilsyn_per_maaned %>% filter(tilsynstype != "Total"), type_tilsyn = "Alle", ylabtekst = "Gjennomsnittlig\nantall tilsyn")
+
+@
+
+
+%\subsection{Hvilken måned har flest og færrest tilsyn}
+
+%Søylediagrammene under synliggjør hvilke måneder som har flest tilsyn. 
+
+<<echo = FALSE, include = FALSE>>=
+
+# Figurtekst til søylediagram antall tilsyn per måned.
+
+# Figurtekst til søylediagram antall tilsyn per måned.
+
+total_maaned_soyle=paste0("Antall pasienttilsyn per måned. 
+                     I denne sammenheng kan en pasient ha hatt tilsyn fra flere 
+                    sykehuspersonell samtidig. Basert på 
+                    ",tot_antall$sum," pasienttilsyn hos 
+                    ",nrow(tilsyn %>% filter(tilsynstype == "Total") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                    ")
+
+beh_maaned_soyle=paste0("Antall behandlertilsyn per måned. 
+                   Dette er summen av alle tilsyn pasienten har fått fra ulike sykehuspersonell, selv om to ulike behandlere
+                   var til stede på et tilsyn samtidig. 
+                   Basert på ",sum_typer_antall$sum," behandlertilsyn,
+                   hos ",nrow(tilsyn %>% filter(tilsynstype != "Total") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+
+lege_maaned_soyle=paste0("Antall legetilsyn per måned. Basert på ",lege_antall$sum," legetilsyn hos 
+                   ",nrow(tilsyn %>% filter(tilsynstype == "Lege") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+
+syk_maaned_soyle=paste0("Antall sykepleiertilsyn per måned. Basert på ",syk_antall$sum," sykepleiertilsyn hos 
+                  ",nrow(tilsyn %>% filter(tilsynstype == "Sykepleier") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                  ")
+
+fys_maaned_soyle=paste0("Antall tilsyn fra fysioterapeut per måned. Basert på ",fys_antall$sum," fysioterapeuttilsyn hos 
+                  ",nrow(tilsyn %>% filter(tilsynstype == "Fysioterapeut") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+
+sos_maaned_soyle=paste0("Antall tilsyn fra sosionom per måned. Basert på ",sos_antall$sum," sosionomtilsyn hos 
+                  ",nrow(tilsyn %>% filter(tilsynstype == "Sosionom") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+
+psyk_maaned_soyle=paste0("Antall tilsyn fra psykolog per måned. Basert på 
+                   ",psyk_antall$sum," psykologtilsyn hos 
+                   ",nrow(tilsyn %>% filter(tilsynstype == "Psykolog") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+
+@
+
+
+<<echo = FALSE, include = FALSE, fig.cap = total_maaned_soyle, fig.show=total_maaned_soyle>>=
+
+tilsyn_maned_uten_total = sum_tilsyn_maned %>% filter(monthname != "total")
+
+#Lage plot funksjon for liknende plott for hver tilsynstype
+plot_sum_tilsyn_maned = function(d, tilsynstype, ylabtekst){
+  
+  ggplot(d, aes(x = monthname, y = tilsynstype)) +
+  geom_bar(stat='identity', width=2/3, fill="Hotpink3") + coord_flip() +
+  xlab("Måned") + ylab(ylabtekst) + tema + fjern_y
+
+}
+
+plot_sum_tilsyn_maned(tilsyn_maned_uten_total, tilsynstype = tilsyn_maned_uten_total$Total, ylabtekst = "Antall pasienttilsyn")
+
+
+@
+
+<<echo = FALSE, include = FALSE, fig.cap = beh_maaned_soyle, fig.show=beh_maaned_soyle >>=
+
+plot_sum_tilsyn_maned(tilsyn_maned_uten_total, tilsynstype = tilsyn_maned_uten_total$behandlertilsyn, ylabtekst = "Antall behandlertilsyn")
+
+@
+
+<<echo = FALSE, include = FALSE, fig.cap = lege_maaned_soyle, fig.show=lege_maaned_soyle>>=
+
+plot_sum_tilsyn_maned(tilsyn_maned_uten_total, tilsynstype = tilsyn_maned_uten_total$Lege, 
+                ylabtekst = "Antall legetilsyn")
+
+@
+
+<<echo = FALSE, include = FALSE, fig.cap = syk_maaned_soyle, fig.show=syk_maaned_soyle>>=
+plot_sum_tilsyn_maned(tilsyn_maned_uten_total, tilsynstype = tilsyn_maned_uten_total$Sykepleier, 
+                ylabtekst = "Antall sykepleiertilsyn")
+@
+
+<<echo = FALSE, include = FALSE, fig.cap = psyk_maaned_soyle, fig.show=psyk_maaned_soyle>>=
+
+plot_sum_tilsyn_maned(tilsyn_maned_uten_total, tilsynstype = tilsyn_maned_uten_total$Psykolog, 
+                ylabtekst = "Antall psykologtilsyn")
+
+@
+
+<<echo = FALSE, include = FALSE, fig.cap = fys_maaned_soyle, fig.show=fys_maaned_soyle>>=
+plot_sum_tilsyn_maned(tilsyn_maned_uten_total, tilsynstype = tilsyn_maned_uten_total$Fysioterapeut, 
+                ylabtekst = "Antall fysioterapeuttilsyn")
+
+@
+
+\clearpage
+\newline
+\section{Antall tilsyn per pasient}
+
+For å finne ut hvor mange tilsyn pasientene 
+får, ser vi under noen grafer som teller opp hvor mange pasienter som
+får $1,2,3,\dots$ tilsyn per måned.
+<<echo = FALSE, include = FALSE>>=
+
+# Figurtekst til figurer med hva som er vanlig antall tilsyn
+
+total_maaned=paste0("Antall pasienter som opplever et visst antall pasienttilsyn per måned. 
+                     En pasient kan ha hatt tilsyn fra flere 
+                    behandlere per tilsyn i denne sammenheng. Basert på 
+                    ",tot_antall$sum," tilsyn hos 
+                    ",nrow(tilsyn %>% filter(tilsynstype == "Total") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                    ")
+
+alle_maaned=paste0("Antall pasienter som opplever et visst antall behandlertilsyn per måned. 
+                   En pasient kan ha hatt tilsyn fra flere ulike behandlere om gangen. 
+                   Basert på ",sum_typer_antall$sum," behandlertilsyn,
+                   hos ",nrow(tilsyn %>% filter(tilsynstype != "Total") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                   ")
+
+lege_maaned=paste0("Antall pasienter som opplever et visst antall legetilsyn per måned. Basert på ",lege_antall$sum," tilsyn hos 
+                   ",nrow(tilsyn %>% filter(tilsynstype == "Lege") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                   ")
+
+syk_maaned=paste0("Antall pasienter som opplever et visst antall sykepleiertilsyn per måned. Basert på ",syk_antall$sum," tilsyn hos 
+                  ",nrow(tilsyn %>% filter(tilsynstype == "Sykepleier") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                  ")
+
+fys_maaned=paste0("Antall pasienter som opplever et visst antall pasienter som opplever et visst antall tilsyn fra fysioterapeut per måned. Basert på ",fys_antall$sum," tilsyn hos 
+                  ",nrow(tilsyn %>% filter(tilsynstype == "Fysioterapeut") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                  ")
+
+sos_maaned=paste0("Antall pasienter som opplever et visst antall tilsyn fra sosionom per måned. Basert på ",sos_antall$sum," tilsyn hos 
+                  ",nrow(tilsyn %>% filter(tilsynstype == "Sosionom") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                  ")
+
+psyk_maaned=paste0("Antall pasienter som opplever et visst antall tilsyn fra psykolog per måned. Basert på 
+                   ",psyk_antall$sum," tilsyn hos 
+                   ",nrow(tilsyn %>% filter(tilsynstype == "Psykolog") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                   ")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = total_maaned, fig.show=total_maaned>>=
+
+plot_tilsyn_maned(d = tilsyn_maned, type_tilsyn = "Total", maaned = "Alle", xlabtekst = "Antall pasienttilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = alle_maaned, fig.show=alle_maaned>>=
+
+plot_tilsyn_maned(d = tilsyn_maned, type_tilsyn = "Alle", maaned = "Alle", xlabtekst = "Antall behandlertilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = lege_maaned, fig.show=lege_maaned>>=
+
+plot_tilsyn_maned(d = tilsyn_maned, type_tilsyn = "Lege", maaned = "Alle", xlabtekst = "Antall legetilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = syk_maaned, fig.show=syk_maaned>>=
+
+plot_tilsyn_maned(d = tilsyn_maned, type_tilsyn = "Sykepleier", maaned = "Alle", xlabtekst = "Antall sykepleiertilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = psyk_maaned, fig.show=psyk_maaned>>=
+
+plot_tilsyn_maned(d = tilsyn_maned, type_tilsyn = "Psykolog", maaned = "Alle", xlabtekst = "Antall tilsyn fra psykolog")
+
+@
+
+\clearpage
+
+\section{Tilsyn fordelt på avdeling}
+
+I tillegg til å finne ut om antall tilsyn varierer på månedsbasis ønsker vi å se på antall tilsyn fordelt på de ulike avdelingene på sykehuset. Tabell $3$ viser tallene for hver avdeling.
+
+<<echo = FALSE, include = FALSE>>=
+library(kableExtra)
+
+# Figurtekst til antall tilsyn per avdeling for hver type tilsyn
+
+total_avdeling=paste0("Antall pasienttilsyn per avdeling. En pasient kan ha hatt tilsyn fra flere sykehuspersonell per tilsyn i denne sammenheng. Basert på ",tot_antall$sum," tilsyn hos 
+                     ",nrow(tilsyn %>% filter(tilsynstype == "Total") %>% distinct(pasientid, .keep_all = TRUE))," pasienter. 
+                     Avdelinger med færre enn 5 tilsyn er ikke med i grafen. 
+                     Figuren er satt i rekkefølge fra avdelingen med flest antall tilsyn til avdelingen med færrest antall tilsyn.")
+
+alle_avdeling=paste0("Antall behandlertilsyn per avdeling. 
+                   En pasient kan ha hatt tilsyn fra flere ulike tilsynstyper om gangen. 
+                   Basert på ",sum_typer_antall$sum," behandlertilsyn,
+                   hos ",nrow(tilsyn %>% filter(tilsynstype != "Total") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                   Figuren er satt i rekkefølge fra avdelingen med flest antall tilsyn til avdelingen med færrest antall tilsyn.
+                   Avdelinger med færre enn 5 tilsyn er ikke med i grafen.")
+
+lege_avdeling=paste0("Antall legetilsyn per avdeling. Basert på ",lege_antall$sum," tilsyn hos 
+                   ",nrow(tilsyn %>% filter(tilsynstype == "Lege") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                   Avdelinger med færre enn 5 tilsyn er ikke med i grafen. Figuren er satt i rekkefølge fra 
+                   avdelingen med flest antall tilsyn til avdelingen med færrest antall tilsyn.")
+
+syk_avdeling=paste0("Antall sykepleiertilsyn per avdeling. Basert på ",syk_antall$sum," tilsyn. hos 
+                  ",nrow(tilsyn %>% filter(tilsynstype == "Sykepleier") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                  Avdelinger med færre enn 5 tilsyn er ikke med i grafen. Figuren er satt i 
+                  rekkefølge fra avdelingen med flest antall tilsyn til avdelingen med færrest antall tilsyn.")
+
+fys_avdeling=paste0("Antall tilsyn fra fysioterapeut per avdeling. Basert på ",fys_antall$sum," tilsyn hos 
+                  ",nrow(tilsyn %>% filter(tilsynstype == "Fysioterapeut") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                  Avdelinger med færre enn 5 tilsyn er ikke med i grafen.")
+
+sos_avdeling=paste0("Antall tilsyn fra sosionom per avdeling. Basert på ",sos_antall$sum," tilsyn hos 
+                  ",nrow(tilsyn %>% filter(tilsynstype == "Sosionom") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                  Avdelinger med færre enn 5 tilsyn er ikke med i grafen. Figuren er satt i 
+                  rekkefølge fra avdelingen med flest antall tilsyn til avdelingen med færrest antall tilsyn.")
+
+psyk_avdeling=paste0("Antall tilsyn fra psykolog per avdeling. Basert på 
+                   ",psyk_antall$sum," tilsyn hos 
+                   ",nrow((tilsyn %>% filter(tilsynstype == "Psykolog") %>% distinct(pasientid, .keep_all = TRUE)))," pasienter.
+                   Avdelinger med færre enn 5 tilsyn er ikke med i grafen. Figuren er satt i 
+                   rekkefølge fra avdelingen med flest antall tilsyn til avdelingen med færrest antall tilsyn.")
+
+
+@
+
+<<echo = FALSE, include = TRUE>>=
+
+
+sum_tilsyn_avdeling = tilsyn %>% 
+                     group_by(tilsynstype, avdeling_navn) %>% 
+                     summarise(antall = sum(antall)) %>% 
+                     spread(tilsynstype, antall) %>% rowwise() %>% 
+                     mutate(behandlertilsyn = sum(Fysioterapeut, Lege, Psykolog, Sosionom, Sykepleier))
+
+antall_pas_avdeling = tilsyn %>% distinct(pasientid, .keep_all = TRUE) %>% count(avdeling_navn) 
+
+sum_tilsyn_avdeling = bind_cols(sum_tilsyn_avdeling, antall_pas_avdeling[,2])
+
+# Finne summen av hver tilsynstype
+total_tilsyn_avdeling =  summarise_all(sum_tilsyn_avdeling[,-1], funs(sum))
+
+sum_tilsyn_avdeling = bind_rows(sum_tilsyn_avdeling, total_tilsyn_avdeling)
+
+#Få inn navnet på den nye "avdelingen"
+sum_tilsyn_avdeling$avdeling_navn = as.character(sum_tilsyn_avdeling$avdeling_navn)
+
+sum_tilsyn_avdeling$avdeling_navn[is.na(sum_tilsyn_avdeling$avdeling_navn)] = "Total"
+
+# Bytte på rekkefølgen slik at behandlertilsyn kommer før pasienttilsyn
+sum_tilsyn_avdeling = sum_tilsyn_avdeling[,c(1,2,3,4,5,6,8,7,9)]
+sum_tilsyn_avdeling = sum_tilsyn_avdeling %>% 
+  mutate(avdeling_navn = str_replace_all(avdeling_navn, "\n", " "))
+
+knitr::kable(sum_tilsyn_avdeling, caption = paste0("Antall tilsyn per avdeling hos 
+                    ",nrow(tilsyn %>% filter(tilsynstype != "Total") %>% distinct(pasientid, .keep_all = TRUE))," 
+                     pasienter. Behandlertilsyn er summen av tilsynene fra hver ulike behandler. 
+                     Pasienttilsyn, derimot, er antall tilsyn pasientene har mottatt, hvor flere behandlere 
+                     kan ha vært tilstede samtidig."), col.names = c("Avdeling", "Fysioterapeut", "Lege", 
+                                                                     "Psykolog", "Sosionom", "Sykepleier", 
+                                                                     "Behandlertilsyn", "Pasienttilsyn", "Antall pasienter"))%>%
+kable_styling(latex_options = c("hold_position", "scale_down"))
+
+@
+
+Videre kan vi bruke søylediagrammene under til å synliggjøre fordelingen av tilsyn mellom avdelingene. 
+
+<<echo = FALSE, include = FALSE>>=
+
+# Figurtekst til søylediagram antall tilsyn per avdeling.
+
+total_avdeling_soyle=paste0("Antall pasienttilsyn per avdeling. 
+                     I denne sammenheng kan en pasient ha hatt tilsyn fra flere 
+                    sykehuspersonell samtidig. Basert på 
+                    ",tot_antall$sum," pasienttilsyn hos 
+                    ",nrow(tilsyn %>% filter(tilsynstype == "Total") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                    ")
+
+beh_avdeling_soyle=paste0("Antall behandlertilsyn per avdeling. 
+                   Dette er summen av alle tilsyn pasienten har fått fra ulike sykehuspersonell, selv om to ulike behandlere
+                   var til stede på et tilsyn samtidig. 
+                   Basert på ",sum_typer_antall$sum," behandlertilsyn,
+                   hos ",nrow(tilsyn %>% filter(tilsynstype != "Total") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+
+lege_avdeling_soyle=paste0("Antall legetilsyn per avdeling. Basert på ",lege_antall$sum," legetilsyn hos 
+                   ",nrow(tilsyn %>% filter(tilsynstype == "Lege") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+
+syk_avdeling_soyle=paste0("Antall sykepleiertilsyn per avdeling. Basert på ",syk_antall$sum," sykepleiertilsyn hos 
+                  ",nrow(tilsyn %>% filter(tilsynstype == "Sykepleier") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                  Figuren er satt i rekkefølge fra avdelingen med flest antall tilsyn til avdelingen med færrest antall tilsyn.")
+
+fys_avdeling_soyle=paste0("Antall tilsyn fra fysioterapeut per avdeling. Basert på ",fys_antall$sum," fysioterapeuttilsyn hos 
+                  ",nrow(tilsyn %>% filter(tilsynstype == "Fysioterapeut") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+
+sos_avdeling_soyle=paste0("Antall tilsyn fra sosionom per avdeling. Basert på ",sos_antall$sum," sosionomtilsyn hos 
+                  ",nrow(tilsyn %>% filter(tilsynstype == "Sosionom") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+
+psyk_avdeling_soyle=paste0("Antall tilsyn fra psykolog per avdeling. Basert på 
+                   ",psyk_antall$sum," psykologtilsyn hos 
+                   ",nrow(tilsyn %>% filter(tilsynstype == "Psykolog") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+
+
+
+
+@
+
+<<echo = FALSE, include = FALSE, fig.cap = total_avdeling_soyle, fig.show=total_avdeling_soyle>>=
+
+tilsyn_avdeling_uten_total = sum_tilsyn_avdeling %>% filter(avdeling_navn != "Total")
+
+# Lage rekkefølge fra største til minste avdeling
+
+avdelingnamn = tilsyn_avdeling_uten_total %>% arrange(desc(behandlertilsyn)) %>%  extract2("avdeling_navn")
+
+tilsyn_avdeling_uten_total = tilsyn_avdeling_uten_total %>% mutate(avdelingsnavn = factor(avdeling_navn, levels = avdelingnamn)) 
+
+
+#Lage plot funksjon for liknende plott for hver tilsynstype
+plot_sum_tilsyn_avdeling = function(d, tilsynstype, ylabtekst){
+  
+  # Lage rekkefølge fra største til minste avdeling
+
+  avdelingnamn = d %>% arrange(desc(tilsynstype)) %>%
+    extract2("avdeling_navn")
+
+  d = d %>% 
+    mutate(avdelingsnavn = factor(avdeling_navn, levels = avdelingnamn)) 
+
+  ggplot(d, aes(x = avdeling_navn, y = tilsynstype)) +
+  geom_bar(stat='identity', width=2/3, fill="Hotpink3") + coord_flip() +
+  xlab("Avdeling") + ylab(ylabtekst) + tema + fjern_y +
+  scale_x_discrete(limits = rev(levels(d$avdelingsnavn)))
+ 
+}
+
+plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Total, ylabtekst = "Antall pasienttilsyn")
+
+
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = beh_avdeling_soyle, fig.show=lege_avdeling_soyle>>=
+plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$behandlertilsyn, ylabtekst = "Antall behandlertilsyn")
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = lege_avdeling_soyle, fig.show=lege_avdeling_soyle>>=
+
+plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Lege, 
+                ylabtekst = "Antall legetilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = syk_avdeling_soyle, fig.show=syk_avdeling_soyle>>=
+
+plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Sykepleier, 
+                ylabtekst = "Antall sykepleiertilsyn")
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = psyk_avdeling_soyle, fig.show=psyk_avdeling_soyle>>=
+
+plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Psykolog, 
+                ylabtekst = "Antall psykologtilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = fys_avdeling_soyle, fig.show=fys_avdeling_soyle>>=
+plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Fysioterapeut, 
+                ylabtekst = "Antall fysioterapeuttilsyn")
+
+@
+
+\clearpage
+\section{Antall tilsyn flest pasienter får per avdeling}
+
+For å finne ut hvor mange tilsyn pasientene
+får per per avdeling, ser vi under noen grafer som teller opp hvor mange pasienter som
+får $1,2,3,\dots$ tilsyn.
+
+<<echo = FALSE, include = TRUE, fig.cap = total_avdeling, fig.show=total_avdeling>>=
+plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Total", avdeling = "Alle", xlabtekst = "Antall pasienttilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = alle_avdeling, fig.show=total_avdeling>>=
+
+plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Alle", avdeling = "Alle", xlabtekst = "Antall behandlertilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = lege_avdeling, fig.show=total_avdeling>>=
+
+plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Lege", avdeling = "Alle", xlabtekst = "Antall legetilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = syk_avdeling, fig.show=total_avdeling>>=
+
+plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Sykepleier", avdeling = "Alle", xlabtekst = "Antall sykepleiertilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = psyk_avdeling, fig.show=total_avdeling>>=
+
+plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Psykolog", avdeling = "Alle", xlabtekst = "Antall tilsyn fra psykolog")
+
+@
+
+\end{document}
