@@ -14,6 +14,8 @@ Imports:
   readr,
   stringr,
   tidyverse,
+  printr,
+  kableExtra,
   zoo
 Remotes:
   github::yihui/printr
