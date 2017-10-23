@@ -1,4 +1,13 @@
-# Lesing/tolking av det flotte kodebokformatet til OQR :)
+#' Funksjon for å figurer og kodebok riktig i rapport SmerteReg.
+#' 
+#'Funksjon for å lese inn kodebok og å gjøre den om til standardisert format (i tillegg til funksjon som bruker ggplot2 som også ligger her).
+#' @param adresse <Adresse der kodebok kan hentes fra.
+#' @return En standardisert kodebok.
+#'
+#' @export
+
+
+# Lesing/tolking av det flotte kodebokformatet til OQR
 
 
 # Oppsett -----------------------------------------------------------------
@@ -7,10 +16,10 @@
 options(stringsAsFactors = FALSE)
 
 # Nødvendige pakkar
-library(tidyverse) # Ymse standardpakkar
-library(stringr)   # Tekstmassering
-library(magrittr)  # Funksjonar som kan brukast med røyr-operatoren
-library(readr)     # For innlesing av CSV-filer
+#library(tidyverse) # Ymse standardpakkar
+#library(stringr)   # Tekstmassering
+#library(magrittr)  # Funksjonar som kan brukast med røyr-operatoren
+#library(readr)     # For innlesing av CSV-filer
 
 # grafobjekter ----------------------------------------------------------
 
@@ -19,7 +28,7 @@ colNoyt=c("#4D4D4D", "#737373", "#A6A6A6", "#DADADA") # Nøytralfarge
 colKontr="#FF7260"                                    # Kontrastfarge
 
 # ggplot2-tema for figurar
-if(!exists("skriftstorleik")) # Skriftstorleik bør vera definert i kvar årsrapportfil
+if(!exists("skriftstorleik")) 
   skriftstorleik = 13
 tema = theme_light(base_size=skriftstorleik)
 tema$panel.grid.minor$colour="white"
