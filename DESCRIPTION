@@ -16,6 +16,8 @@ Imports:
   tidyverse,
   printr,
   kableExtra,
+  dplyr,
+  tidyr,
   zoo
 Remotes:
   github::yihui/printr
