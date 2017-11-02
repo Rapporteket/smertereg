@@ -19,7 +19,6 @@
 \usepackage{booktabs}
 
 \begin{document}
-%\SweaveOpts{concordance=TRUE}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
@@ -29,34 +28,9 @@
   
   # Ikkje gjer om tekst til faktorar automatisk
   options(stringsAsFactors=FALSE)
-
-# Nødvendige pakker
-#library(tidyverse)
-#library(zoo)
-#library(lubridate)
-#library(forcats)
-#library(stringr)
-#library(printr) # finnes per i dag ikke på CRAN. https://github.com/yihui/printr for å hente ned. 
-#library(readr)
-#library(magrittr)
-
-#knit_theme$set("kvalreg-stilsett")
-
 @
-  
-  <<label = funksjoner, echo = FALSE, include = FALSE>>=
-    
-    # Hente inn fellefunksjoner. pass på at encoding = "utf-8"
-    #source("H:/SmerteReg/R/Fra SKF/felles_funksjoner.R", encoding = "utf-8")
-  
-  # Lesing av datadumpar og kodeøker
-  #source("H:/SmerteReg/R/Fra SKF/kodebok-oqr.R", encoding = "utf-8")
-  
-  @
     
     <<label = datadump, echo = FALSE, include = FALSE>>=
-      
-      #FIX alt dette må endres etter hvordan det ligger lokalt? Dette gjelder Helse Bergen
       
       # Hovudmappa der alt ligg
       mappe = "\\\\ihelse.net\\Kvalitetsregister\\HBE\\2014-00752\\OpenQReg\\"
@@ -68,12 +42,10 @@
       ddmappe = list.dirs(adresse) %>% sort %>% last
       
       # Les inn kodebok
-      # fixme: Last automatisk ned og lagra kodebok dersom
-      #        ho er (mykje) eldre enn datadumpen
-      #        Bruk kodebok frå http://test.helseregister.no/smerte/klokeboken?exploding_lists=true&sanitize_headers=true
-      #        og lagra i \\ihelse.net\Kvalitetsregister\HBE\2014-00752\OpenQReg\kodebok
-      kodebok_filnamn = "SmerteReg_klokeboken.csv_25.08.2017.csv"
-      kb = les_oqr_kb(paste0(mappe, "kodebok\\", kodebok_filnamn))
+      kodebok_filnamn = "SmerteReg_klokeboken.05.10.2017.csv"
+      # kb = les_oqr_kb(paste0(mappe, "kodebok\\", kodebok_filnamn))
+      # Ta inn kodeboken
+      kb = les_oqr_kb(kodebok_filnavn)
       
       
       # Les inn hovuddatasettet og diagnosedatasettet ved hjelp av kodeboka
