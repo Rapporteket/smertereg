@@ -19,6 +19,12 @@ Imports:
   dplyr,
   tidyr,
   zoo,
-  ggplot2
+  ggplot2,
+  colorspace,
+  purr,
+  binom,
+  Hmisc
+  
 Remotes:
   github::yihui/printr
+  github::Rapporteket/rapbase 
