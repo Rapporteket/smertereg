@@ -18,6 +18,7 @@ Imports:
   kableExtra,
   dplyr,
   tidyr,
-  zoo
+  zoo,
+  ggplot2
 Remotes:
   github::yihui/printr
