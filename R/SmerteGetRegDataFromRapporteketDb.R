@@ -3,17 +3,23 @@ smerteGetRegDataFromRapporteketDb <- function() {
   registryName <- "smerte"
   dbType <- "mysql"
   
-  query <- "SELECT
-    FROM
-    Tables_in_SmerteReportDataStaging
-1                           AlleVar
-2                        AlleVarNum
-3                 Avdelingsoversikt
-4                       Brukerliste
-5                   ForlopsOversikt
-6                    SkjemaOversikt
-7                   SmerteDiagnoser
-8                SmerteDiagnoserNum"
+  query <- "
+  SELECT
+    PasientID,
+    ForlopsID,
+    AntTilsLege,
+    AntTilsSykPleier,
+    AntTilsFysioT,
+    AntTilsPsyk,
+    AntTilsSosio,
+    Tilsett,
+    InnlAvd,
+    AntPasTils,
+    StartdatoTO,
+    AvdRESH
+  FROM
+    AlleVarNum
+"
   
   dat <- rapbase::LoadRegData(registryName, query)
   
