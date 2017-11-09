@@ -1,3 +1,8 @@
+#' Query registry data from smerte db
+#'
+#' @return a data frame with registry data
+#' @export
+
 smerteGetRegDataFromRapporteketDb <- function() {
   
   registryName <- "smerte"
