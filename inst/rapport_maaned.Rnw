@@ -30,266 +30,275 @@
   options(stringsAsFactors=FALSE)
 @
     
-    <<label = datadump, echo = FALSE, include = FALSE>>=
-      
-      # Hovudmappa der alt ligg
-      mappe = "\\\\ihelse.net\\Kvalitetsregister\\HBE\\2014-00752\\OpenQReg\\"
-      
-      # Finn den nyaste mappa med datadumpar
-      adresse = paste0(mappe, "datadumper\\test-lokal-bergen\\") # ev. prod\\Lokale data\\Datadump Alle Variable Numerisk\\
-      #adresse = paste0(mappe, "datadumper\\prod\\Lokale data\\Datadump Alle Variable Numerisk\\")
-      
-      ddmappe = list.dirs(adresse) %>% sort %>% last
-      
-      # Les inn kodebok
-      kodebok_filnamn = "SmerteReg_klokeboken.05.10.2017.csv"
-      # kb = les_oqr_kb(paste0(mappe, "kodebok\\", kodebok_filnamn))
-      # Ta inn kodeboken
-      kb = les_oqr_kb(kodebok_filnavn)
-      
-      
-      # Les inn hovuddatasettet og diagnosedatasettet ved hjelp av kodeboka
-      d_full = les_dd_oqr(paste0(ddmappe, "\\", "Datadump_Alle_variabler_numerisk.csv"), kb)
-      
-      # Legg til variabel for pasientid og forlopisid (som manglar i kodeboka),
-      # sidan skriptet tydelegvis brukar dette (fixme)
-      d_full = d_full %>% 
-        mutate(pasientid = oqr_pasientid,
-               forlopsid = oqr_forlopsid)
-      
-      # årets år
-      aar = year(Sys.Date())
-      
-      d_full = d_full %>% filter(year(mce_registered_date) == aar)
-      
-      # Legg inn navn på avdelinger
-      
-      d_full = d_full %>% mutate(avdeling_navn = case_when(emp11_department == 4 ~  "Medisinsk p1 Nord",    #Her begynner Helse Bergen
-                                                           emp11_department == 5 ~ "Medisinsk\navd.1 Vest",
-                                                           emp11_department == 6 ~ "Barneklinikken p4",
-                                                           emp11_department == 7 ~ "Barneklinikken p5",
-                                                           emp11_department == 8 ~ "Hjerte p3 MIO",
-                                                           emp11_department == 156 ~ "Hjerte p3 MIO", 
-                                                           emp11_department == 9 ~ "Hjerte p4", 
-                                                           emp11_department == 10 ~ "Hjerte p1",
-                                                           emp11_department == 11 ~ "Hjert p2",
-                                                           emp11_department == 12 ~ "Hud sengepost",  
-                                                           emp11_department == 13 ~ "Bryst- og\nendokrin",
-                                                           emp11_department == 14 ~ "Gastro og\nakutt p1",
-                                                           emp11_department == 15 ~ "Gastro og\nakutt p3", 
-                                                           emp11_department == 16 ~ "Karkirurgi", 
-                                                           emp11_department == 17 ~ "Plastikkirurgi",
-                                                           emp11_department == 18 ~ "Plastikkirurgi og BSA",
-                                                           emp11_department == 19 ~ "Urologi",  
-                                                           emp11_department == 20 ~ "Øre, nese, hals",
-                                                           emp11_department == 21 ~ "Lunge p3",
-                                                           emp11_department == 22 ~ "Lunge p1", 
-                                                           emp11_department == 23 ~ "Korttidspost\nmottak",
-                                                           emp11_department == 24 ~ "Nevrokirurgisk\nsengep",
-                                                           emp11_department == 25 ~ "Nevrologisk p3", 
-                                                           emp11_department == 26 ~ "Nevrologisk p4\nSpinal", 
-                                                           emp11_department == 27 ~ "Nevrologisk p2\nSlag",
-                                                           emp11_department == 28 ~"OT Rehab sengepost",
-                                                           emp11_department == 29 ~ "OT p1",  
-                                                           emp11_department == 30 ~ "OT p2 vest",
-                                                           emp11_department == 31 ~ "OT p2 syd",
-                                                           emp11_department == 32 ~ "Medisinsk p6", 
-                                                           emp11_department == 33 ~ "Medisinsk p5 vest",  
-                                                           emp11_department == 34 ~ "Medisinsk p5 nord",
-                                                           emp11_department == 35 ~ "Intensivmedisinsk",
-                                                           emp11_department == 36 ~ "KK Gyn 1", 
-                                                           emp11_department == 37 ~ "KK Gyn 2",
-                                                           emp11_department == 38 ~ "Medisinsk\navd.2 Dialyse",
-                                                           emp11_department == 39 ~ "Reuma sengepost", 
-                                                           emp11_department == 41 ~ "OT barn",
-                                                           emp11_department == 42 ~ "Gastro Barn",
-                                                           emp11_department == 43 ~ "ØNH barnekirurgen p1",  
-                                                           emp11_department == 44 ~ "AFMR p2",
-                                                           emp11_department == 77 ~ "Medisinsk avd.8",
-                                                           emp11_department == 85 ~ "Øyeavdeling", 
-                                                           emp11_department == 40 ~ "Øyeavdeling",
-                                                           emp11_department == 86 ~"Utgreiingsmottak 1",
-                                                           emp11_department == 87 ~ "Utgreiingsmottak 2", 
-                                                           emp11_department == 152 ~ "Barne- og Ungdomsklinikken p4",
-                                                           emp11_department == 153 ~ "Barne- og Ungdomsklinikken p3",  #Her slutter Helse Bergen
-                                                           emp11_department == 90 ~ "Barn 1 medisin sengepost",       #Her begynner St.Olav
-                                                           emp11_department == 91 ~ "Barn 2 kirurgi sengepost", 
-                                                           emp11_department == 92 ~ "Barn 3 infeksjon sengepost",
-                                                           emp11_department == 93 ~ "Barn 4 kreft-og blodsykdommer",
-                                                           emp11_department == 94 ~ "Barn 5 ortopedi sengepost",
-                                                           emp11_department == 95 ~ "Barsel vest",
-                                                           emp11_department == 96 ~ "Barsel øst",
-                                                           emp11_department == 97 ~ "Generell gynekologi",
-                                                           emp11_department == 98 ~ "Gynekologi kreft sengepost",
-                                                           emp11_department == 99 ~ "Kvinneklinikken overvåking",
-                                                           emp11_department == 100 ~ "Kirurgi bryst-endo 5 et tun 1",
-                                                           emp11_department == 101 ~ "Elektiv ortopedi sengepost",
-                                                           emp11_department == 102 ~ "Plastikkirurgisk sengepost",
-                                                           emp11_department == 103 ~ "Revmatologisk sengepost",
-                                                           emp11_department == 104 ~ "Kirurgi kar 5. et tun 1-2",
-                                                           emp11_department == 105 ~ "Kirurgi Gastro 4 et tun 3-4",
-                                                           emp11_department == 106 ~ "Kirurgi Gastro 5 et tun 3-5",
-                                                           emp11_department == 107 ~ "Kirurgisk tung overvåking",
-                                                           emp11_department == 108 ~ "Kirurgi urologi sengepost",
-                                                           emp11_department == 109 ~ "Kreft dagenhet et M2",
-                                                           emp11_department == 110 ~ "Kreft sengepost etg M3",
-                                                           emp11_department == 111 ~ "Kreft sengepost lindrende behandling",
-                                                           emp11_department == 112 ~ "Sengepost blodsykdommer",
-                                                           emp11_department == 113 ~ "Sengepost fordøyelse- og leversykdommer",
-                                                           emp11_department == 114 ~ "Sengepost nyresykdommer og endokrinologi",
-                                                           emp11_department == 115 ~ "Mottaksavdeling observasjonspost 1",
-                                                           emp11_department == 116 ~ "Mottaksavdeling observasjonspost 2",
-                                                           emp11_department == 117 ~ "Mottaksavdeling sengepost",
-                                                           emp11_department == 118 ~ "Hovedintensiv",
-                                                           emp11_department == 119 ~ "Hjertemedisin intensiv 4. et.",
-                                                           emp11_department == 120 ~ "Lungemedisin 5. et. tun 3 dagenhet",
-                                                           emp11_department == 121 ~ "Lungemedisin 6. et. tun 4-5",
-                                                           emp11_department == 122 ~ "Lungemedisin 6. et. tun 2-3",
-                                                           emp11_department == 123 ~"Lungemedisin 6. et. tun 1",
-                                                           emp11_department == 124 ~ "Lungemedisin 6. et. overvåking",
-                                                           emp11_department == 125 ~ "Thoraxkirurgi intensiv",
-                                                           emp11_department == 126 ~ "Thoraxkirurgi sengetun",
-                                                           emp11_department == 127 ~ "Sengepost hjerneslag",
-                                                           emp11_department == 128 ~ "Avd for ryggmargsskader sengepost",
-                                                           emp11_department == 129 ~ "Sengepost geriatri",
-                                                           emp11_department == 130 ~ "Kjeve- og ansiktskirurgi sengepost",
-                                                           emp11_department == 131 ~ "ØNH sengepost",
-                                                           emp11_department == 132 ~ "Øye sengepost",                                           
-                                                           emp11_department == 133 ~ "Nevrologisk sengepost",
-                                                           emp11_department == 134 ~ "Nevrokirurgisk sengepost",
-                                                           emp11_department == 135 ~ "Nevroklinikkens overvåking",
-                                                           emp11_department == 136 ~ "Sengepost infeksjonssykdommer",
-                                                           emp11_department == 137 ~ "Hudavdelingens sengepost",
-                                                           emp11_department == 138 ~ "Klinikk for rus og avhengighetsmedisin",
-                                                           emp11_department == 143 ~ "Ortopedisk avdelinge-ortopedisk traumatologi",
-                                                           emp11_department == 144 ~ "Rekonstruktiv ortopedi sengetun",
-                                                           emp11_department == 145 ~ "Ortopedisk postoperativ overvåking",
-                                                           emp11_department == 146 ~ "Hjertemedisin tun 3, 4. et.",
-                                                           emp11_department == 147 ~ "Hjertemedisin tun 4-5, 4. et. Sør",
-                                                           emp11_department == 148 ~ "Hjertemedisin tun 6-7, 4. et. Midt",
-                                                           emp11_department == 149 ~ "Hjertemedisin tun 4-5, 5. et. Sør",
-                                                           emp11_department == 150 ~ "Avdeling Østmarka",
-                                                           emp11_department == 151 ~ "Avdeling Brøset",                #Her slutter St. Olavs
-                                                           emp11_department == 45 ~ "Akuttmottak- og obspostavdeling", #Her begynner UNN
-                                                           emp11_department == 46 ~ "Barne- og ungdomsavdeling",
-                                                           emp11_department == 47 ~ "Barnehabilitering Tromsø",
-                                                           emp11_department == 48 ~ "Barne- og ungdomspsykiatrisk avdeling",
-                                                           emp11_department == 49 ~ "Hjerte- /Lunge- og karkirurgisk avdeling",
-                                                           emp11_department == 50 ~ "Hjertemedisinsk avdeling",
-                                                           emp11_department == 51 ~ "Lungemedisinsk avdeling",
-                                                           emp11_department == 52 ~ "Avdeling for gastroenterologisk kirurgi",
-                                                           emp11_department == 53 ~ "Avdeling for urologi, endokrin og brystkirurgi",
-                                                           emp11_department == 54 ~ "Kreftavdelingen",
-                                                           emp11_department == 55 ~ "Kvinneklinikken",
-                                                           emp11_department == 56 ~ "Gastro- og nyremedisinsk avdeling",
-                                                           emp11_department == 57 ~ "Sengepost for blod- og hormonsykdommer",
-                                                           emp11_department == 58 ~ "Sengepost for geriatri",
-                                                           emp11_department == 59 ~ "Sengepost for infeksjonssykdommer",
-                                                           emp11_department == 60 ~ "Nevro-, hud- og revmatologisk avdeling",
-                                                           emp11_department == 61 ~ "Nevrokirurgi-, ØNH- og øyeavdeling",
-                                                           emp11_department == 62 ~ "Ortopedi- og plastikkirurgisk avdeling",
-                                                           emp11_department == 63 ~ "Fysikalsk- og rehabiliteringsmedisin, Tromsø/Narvik",
-                                                           emp11_department == 64 ~ "Habiliteringsenhet Tromsø",
-                                                           emp11_department == 65 ~ "Intensiv Tromsø",
-                                                           emp11_department == 66 ~ "Oppvåkning Tromsø",
-                                                           emp11_department == 67 ~ "Psykiatri og rusbehandling, LARiNord",
-                                                           emp11_department == 68 ~ "Akuttpsykiatrisk seksjon",
-                                                           emp11_department == 69 ~ "Alderspsykiatrisk seksjon",
-                                                           emp11_department == 70 ~ "Psykose og rusenheten",
-                                                           emp11_department == 71 ~ "RUS-Tverrf.Spes. Beh. av rusmiddelmisbruk",
-                                                           emp11_department == 72 ~ "Sikkerhetspsykiatrisk seksjon",
-                                                           emp11_department == 73 ~ "Rusbehandling, Færingen",
-                                                           emp11_department == 74 ~ "Rusbehandling, ReStart",
-                                                           emp11_department == 75 ~ "Senter for psykisk helse og rusbehandling Tromsø og omegn, døgnseksjon",
-                                                           emp11_department == 76 ~ "Psykiatri og rusbehandling, avrusning og utredning", 
-                                                           
-                                                           FALSE ~ "Uspesifisert"),
-                                 tilsett = case_when(mce_supervision == 1 ~ "Ja", 
-                                                     mce_supervision == 2 ~ "Nei - ikke behov", 
-                                                     mce_supervision == 3 ~ "Nei - ikke kapasitet", 
-                                                     mce_supervision == 4 ~ "Nei - ikke prioritert, men gitt råd",
-                                                     mce_supervision == 5 ~ "Nei - Annen årsak", 
-                                                     is.na(mce_supervision) ~ "Mangler verdi", 
-                                                     FALSE ~ "Annet"))
-      
-      # Finne fordelingen av antall tilsyn per avdeling, fordelt på de ulike formene for tilsyn
-      
-      # Først gather for å gjøre data "long" og typene tilsyn blir kategoriene i en variabel. Disse endres til norske navn
-      # samtidig må datoene også bli long slik at man får inn datoene per forløp. 
-      # Bytter ut dem som er missing med 0, siden det er da 0 tilsyn. 
-      # I tillegg lager vi en variabel for måneder, og en med årsaker til at pasienten ikke har fått tilsyn 
-      
-      tilsyn_full = d_full %>% select(pasientid, forlopsid, emp22_caregiver_doctor_times, emp22_caregiver_psychologist_times, 
-                                      emp22_caregiver_social_worker_times, avdeling_navn, mce_supervision, tilsett, 
-                                      emp22_caregiver_nurse_times, emp22_caregiver_physiotherapist_times, emp11_department, 
-                                      emp22_consultations, mce_registered_date) %>% 
-        gather(key = tilsynstype, value=antall, 
-               emp22_caregiver_doctor_times, emp22_caregiver_psychologist_times, 
-               emp22_caregiver_social_worker_times, 
-               emp22_caregiver_nurse_times, emp22_caregiver_physiotherapist_times,
-               emp22_consultations) %>% 
-        mutate(antall = replace(antall, is.na(antall), 0), 
-               month = month(mce_registered_date),
-               
-               tilsynstype=str_replace_all(tilsynstype,"emp22_caregiver_doctor_times", 
-                                           "Lege"),
-               tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_nurse_times",
-                                           "Sykepleier"), 
-               tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_physiotherapist_times", 
-                                           "Fysioterapeut"),
-               tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_psychologist_times", 
-                                           "Psykolog"),
-               tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_social_worker_times", 
-                                           "Sosionom"),
-               tilsynstype=str_replace_all(tilsynstype, "emp22_consultations", 
-                                           "Total"),
-               yearmonth = as.yearmon(mce_registered_date))
-      
-      
-      # Lage månedsnavn i rekkefølge slik som de er i året
-      
-      manednamn = months(as.Date(paste0("2017-",1:12,"-01")))
-      
-      tilsyn_full = tilsyn_full %>% mutate(monthname = factor(months(mce_registered_date), levels = manednamn)) 
-      
-      # Filtrer på de som har fått tilsyn
-      
-      tilsyn = tilsyn_full %>% filter(mce_supervision == 1)
-      
-      # Det viser seg at man kan ha 0 totale tilsyn til tross pasienten har tilsett = ja,
-      # og ha tilsyn på andre typer (lege, sykepleier osv.) til tross 
-      # tilsett = nei. Dette er hvis legen (eller andre behandlere) har 
-      # kommet bort  til avdelingen, men pasienten
-      # er bevisstløs eller lignende. 
-      
-      # Med koden nedenfor kan vi sjekke at ingen har svart "ja" som ikke har en verdi for "Totale" tilsyn
-      # og identifisere hvem det er
-      
-      # tilsyn %>% filter(mce_supervision == 1, antall == 0, tilsynstype == "Total")
-      # 
-      # ingentilsyn_pers = tilsyn %>% 
-      #   filter(pasientid == "261"|  pasientid == "279" | 
-      #          pasientid == "285" | pasientid =="336") %>% 
-      #   select(pasientid, forlopsid, tilsynstype, antall) %>% arrange(pasientid)
-      
-      
-      # regne ut frekvens av hver "antall"-kategori for hver avdeling
-      
-      tilsyn_avdeling = tilsyn %>% group_by(tilsynstype, emp11_department, avdeling_navn)  %>% count(antall) %>% ungroup %>% 
-        mutate(emp11_department=fct_reorder(factor(emp11_department), -n, sum))
-      
-      # Antall tilsyn for pasienter som kom in in viss måned
-      
-      # fixme! skal måneder baseres på startdato eller dato for registrering (utfylling av skjema)?
-      
-      tilsyn_maned = tilsyn %>% group_by(tilsynstype, month, monthname)  %>% count(antall) %>% arrange(month)
-      
-      #Totalt Antall tilsyn for pasienter som kom in in viss måned per avdeling
-      
-      tilsyn_maned_avdeling = tilsyn %>% group_by(tilsynstype, monthname, emp11_department)  %>% count(antall) 
-      
-      @
-        
+<<label = datadump, echo = FALSE, include = FALSE>>=
+
+# if at Rapporteket do not use local files
+context <- Sys.getenv("R_RAP_INSTANCE")
+
+if (context == "TEST" | context == "QA" | context == "PRODUCTION") {
+  kb <- les_oqr_kb(system.file("SmerteReg_klokeboken.05.10.2017.csv", package = "smerte"))
+} else {
+  
+  # Hovudmappa der alt ligg
+  mappe = "\\\\ihelse.net\\Kvalitetsregister\\HBE\\2014-00752\\OpenQReg\\"
+  
+  # Finn den nyaste mappa med datadumpar
+  adresse = paste0(mappe, "datadumper\\test-lokal-bergen\\") # ev. prod\\Lokale data\\Datadump Alle Variable Numerisk\\
+  #adresse = paste0(mappe, "datadumper\\prod\\Lokale data\\Datadump Alle Variable Numerisk\\")
+  
+  ddmappe = list.dirs(adresse) %>% sort %>% last
+  
+  # Les inn kodebok
+  kodebok_filnamn = "SmerteReg_klokeboken.05.10.2017.csv"
+  # kb = les_oqr_kb(paste0(mappe, "kodebok\\", kodebok_filnamn))
+  # Ta inn kodeboken
+  kb = les_oqr_kb(kodebok_filnavn)
+  
+  
+  # Les inn hovuddatasettet og diagnosedatasettet ved hjelp av kodeboka
+  d_full = les_dd_oqr(paste0(ddmappe, "\\", "Datadump_Alle_variabler_numerisk.csv"), kb)
+}
+# Legg til variabel for pasientid og forlopisid (som manglar i kodeboka),
+# sidan skriptet tydelegvis brukar dette (fixme)
+d_full = d_full %>% 
+  mutate(pasientid = oqr_pasientid,
+         forlopsid = oqr_forlopsid)
+
+# årets år
+aar = year(Sys.Date())
+
+d_full = d_full %>% filter(year(mce_registered_date) == aar)
+
+# Legg inn navn på avdelinger
+
+d_full = d_full %>%
+  mutate(avdeling_navn = case_when(emp11_department == 4 ~  "Medisinsk p1 Nord",
+                                   #Her begynner Helse Bergen
+                                   emp11_department == 5 ~ "Medisinsk\navd.1 Vest",
+                                   emp11_department == 6 ~ "Barneklinikken p4",
+                                   emp11_department == 7 ~ "Barneklinikken p5",
+                                   emp11_department == 8 ~ "Hjerte p3 MIO",
+                                   emp11_department == 156 ~ "Hjerte p3 MIO", 
+                                   emp11_department == 9 ~ "Hjerte p4", 
+                                   emp11_department == 10 ~ "Hjerte p1",
+                                   emp11_department == 11 ~ "Hjert p2",
+                                   emp11_department == 12 ~ "Hud sengepost",  
+                                   emp11_department == 13 ~ "Bryst- og\nendokrin",
+                                   emp11_department == 14 ~ "Gastro og\nakutt p1",
+                                   emp11_department == 15 ~ "Gastro og\nakutt p3", 
+                                   emp11_department == 16 ~ "Karkirurgi", 
+                                   emp11_department == 17 ~ "Plastikkirurgi",
+                                   emp11_department == 18 ~ "Plastikkirurgi og BSA",
+                                   emp11_department == 19 ~ "Urologi",  
+                                   emp11_department == 20 ~ "Øre, nese, hals",
+                                   emp11_department == 21 ~ "Lunge p3",
+                                   emp11_department == 22 ~ "Lunge p1", 
+                                   emp11_department == 23 ~ "Korttidspost\nmottak",
+                                   emp11_department == 24 ~ "Nevrokirurgisk\nsengep",
+                                   emp11_department == 25 ~ "Nevrologisk p3", 
+                                   emp11_department == 26 ~ "Nevrologisk p4\nSpinal", 
+                                   emp11_department == 27 ~ "Nevrologisk p2\nSlag",
+                                   emp11_department == 28 ~"OT Rehab sengepost",
+                                   emp11_department == 29 ~ "OT p1",  
+                                   emp11_department == 30 ~ "OT p2 vest",
+                                   emp11_department == 31 ~ "OT p2 syd",
+                                   emp11_department == 32 ~ "Medisinsk p6", 
+                                   emp11_department == 33 ~ "Medisinsk p5 vest",  
+                                   emp11_department == 34 ~ "Medisinsk p5 nord",
+                                   emp11_department == 35 ~ "Intensivmedisinsk",
+                                   emp11_department == 36 ~ "KK Gyn 1", 
+                                   emp11_department == 37 ~ "KK Gyn 2",
+                                   emp11_department == 38 ~ "Medisinsk\navd.2 Dialyse",
+                                   emp11_department == 39 ~ "Reuma sengepost", 
+                                   emp11_department == 41 ~ "OT barn",
+                                   emp11_department == 42 ~ "Gastro Barn",
+                                   emp11_department == 43 ~ "ØNH barnekirurgen p1",  
+                                   emp11_department == 44 ~ "AFMR p2",
+                                   emp11_department == 77 ~ "Medisinsk avd.8",
+                                   emp11_department == 85 ~ "Øyeavdeling", 
+                                   emp11_department == 40 ~ "Øyeavdeling",
+                                   emp11_department == 86 ~"Utgreiingsmottak 1",
+                                   emp11_department == 87 ~ "Utgreiingsmottak 2", 
+                                   emp11_department == 152 ~ "Barne- og Ungdomsklinikken p4",
+                                   emp11_department == 153 ~ "Barne- og Ungdomsklinikken p3",  #Her slutter Helse Bergen
+                                   emp11_department == 90 ~ "Barn 1 medisin sengepost",       #Her begynner St.Olav
+                                   emp11_department == 91 ~ "Barn 2 kirurgi sengepost", 
+                                   emp11_department == 92 ~ "Barn 3 infeksjon sengepost",
+                                   emp11_department == 93 ~ "Barn 4 kreft-og blodsykdommer",
+                                   emp11_department == 94 ~ "Barn 5 ortopedi sengepost",
+                                   emp11_department == 95 ~ "Barsel vest",
+                                   emp11_department == 96 ~ "Barsel øst",
+                                   emp11_department == 97 ~ "Generell gynekologi",
+                                   emp11_department == 98 ~ "Gynekologi kreft sengepost",
+                                   emp11_department == 99 ~ "Kvinneklinikken overvåking",
+                                   emp11_department == 100 ~ "Kirurgi bryst-endo 5 et tun 1",
+                                   emp11_department == 101 ~ "Elektiv ortopedi sengepost",
+                                   emp11_department == 102 ~ "Plastikkirurgisk sengepost",
+                                   emp11_department == 103 ~ "Revmatologisk sengepost",
+                                   emp11_department == 104 ~ "Kirurgi kar 5. et tun 1-2",
+                                   emp11_department == 105 ~ "Kirurgi Gastro 4 et tun 3-4",
+                                   emp11_department == 106 ~ "Kirurgi Gastro 5 et tun 3-5",
+                                   emp11_department == 107 ~ "Kirurgisk tung overvåking",
+                                   emp11_department == 108 ~ "Kirurgi urologi sengepost",
+                                   emp11_department == 109 ~ "Kreft dagenhet et M2",
+                                   emp11_department == 110 ~ "Kreft sengepost etg M3",
+                                   emp11_department == 111 ~ "Kreft sengepost lindrende behandling",
+                                   emp11_department == 112 ~ "Sengepost blodsykdommer",
+                                   emp11_department == 113 ~ "Sengepost fordøyelse- og leversykdommer",
+                                   emp11_department == 114 ~ "Sengepost nyresykdommer og endokrinologi",
+                                   emp11_department == 115 ~ "Mottaksavdeling observasjonspost 1",
+                                   emp11_department == 116 ~ "Mottaksavdeling observasjonspost 2",
+                                   emp11_department == 117 ~ "Mottaksavdeling sengepost",
+                                   emp11_department == 118 ~ "Hovedintensiv",
+                                   emp11_department == 119 ~ "Hjertemedisin intensiv 4. et.",
+                                   emp11_department == 120 ~ "Lungemedisin 5. et. tun 3 dagenhet",
+                                   emp11_department == 121 ~ "Lungemedisin 6. et. tun 4-5",
+                                   emp11_department == 122 ~ "Lungemedisin 6. et. tun 2-3",
+                                   emp11_department == 123 ~"Lungemedisin 6. et. tun 1",
+                                   emp11_department == 124 ~ "Lungemedisin 6. et. overvåking",
+                                   emp11_department == 125 ~ "Thoraxkirurgi intensiv",
+                                   emp11_department == 126 ~ "Thoraxkirurgi sengetun",
+                                   emp11_department == 127 ~ "Sengepost hjerneslag",
+                                   emp11_department == 128 ~ "Avd for ryggmargsskader sengepost",
+                                   emp11_department == 129 ~ "Sengepost geriatri",
+                                   emp11_department == 130 ~ "Kjeve- og ansiktskirurgi sengepost",
+                                   emp11_department == 131 ~ "ØNH sengepost",
+                                   emp11_department == 132 ~ "Øye sengepost",                                           
+                                   emp11_department == 133 ~ "Nevrologisk sengepost",
+                                   emp11_department == 134 ~ "Nevrokirurgisk sengepost",
+                                   emp11_department == 135 ~ "Nevroklinikkens overvåking",
+                                   emp11_department == 136 ~ "Sengepost infeksjonssykdommer",
+                                   emp11_department == 137 ~ "Hudavdelingens sengepost",
+                                   emp11_department == 138 ~ "Klinikk for rus og avhengighetsmedisin",
+                                   emp11_department == 143 ~ "Ortopedisk avdelinge-ortopedisk traumatologi",
+                                   emp11_department == 144 ~ "Rekonstruktiv ortopedi sengetun",
+                                   emp11_department == 145 ~ "Ortopedisk postoperativ overvåking",
+                                   emp11_department == 146 ~ "Hjertemedisin tun 3, 4. et.",
+                                   emp11_department == 147 ~ "Hjertemedisin tun 4-5, 4. et. Sør",
+                                   emp11_department == 148 ~ "Hjertemedisin tun 6-7, 4. et. Midt",
+                                   emp11_department == 149 ~ "Hjertemedisin tun 4-5, 5. et. Sør",
+                                   emp11_department == 150 ~ "Avdeling Østmarka",
+                                   emp11_department == 151 ~ "Avdeling Brøset",                #Her slutter St. Olavs
+                                   emp11_department == 45 ~ "Akuttmottak- og obspostavdeling", #Her begynner UNN
+                                   emp11_department == 46 ~ "Barne- og ungdomsavdeling",
+                                   emp11_department == 47 ~ "Barnehabilitering Tromsø",
+                                   emp11_department == 48 ~ "Barne- og ungdomspsykiatrisk avdeling",
+                                   emp11_department == 49 ~ "Hjerte- /Lunge- og karkirurgisk avdeling",
+                                   emp11_department == 50 ~ "Hjertemedisinsk avdeling",
+                                   emp11_department == 51 ~ "Lungemedisinsk avdeling",
+                                   emp11_department == 52 ~ "Avdeling for gastroenterologisk kirurgi",
+                                   emp11_department == 53 ~ "Avdeling for urologi, endokrin og brystkirurgi",
+                                   emp11_department == 54 ~ "Kreftavdelingen",
+                                   emp11_department == 55 ~ "Kvinneklinikken",
+                                   emp11_department == 56 ~ "Gastro- og nyremedisinsk avdeling",
+                                   emp11_department == 57 ~ "Sengepost for blod- og hormonsykdommer",
+                                   emp11_department == 58 ~ "Sengepost for geriatri",
+                                   emp11_department == 59 ~ "Sengepost for infeksjonssykdommer",
+                                   emp11_department == 60 ~ "Nevro-, hud- og revmatologisk avdeling",
+                                   emp11_department == 61 ~ "Nevrokirurgi-, ØNH- og øyeavdeling",
+                                   emp11_department == 62 ~ "Ortopedi- og plastikkirurgisk avdeling",
+                                   emp11_department == 63 ~ "Fysikalsk- og rehabiliteringsmedisin, Tromsø/Narvik",
+                                   emp11_department == 64 ~ "Habiliteringsenhet Tromsø",
+                                   emp11_department == 65 ~ "Intensiv Tromsø",
+                                   emp11_department == 66 ~ "Oppvåkning Tromsø",
+                                   emp11_department == 67 ~ "Psykiatri og rusbehandling, LARiNord",
+                                   emp11_department == 68 ~ "Akuttpsykiatrisk seksjon",
+                                   emp11_department == 69 ~ "Alderspsykiatrisk seksjon",
+                                   emp11_department == 70 ~ "Psykose og rusenheten",
+                                   emp11_department == 71 ~ "RUS-Tverrf.Spes. Beh. av rusmiddelmisbruk",
+                                   emp11_department == 72 ~ "Sikkerhetspsykiatrisk seksjon",
+                                   emp11_department == 73 ~ "Rusbehandling, Færingen",
+                                   emp11_department == 74 ~ "Rusbehandling, ReStart",
+                                   emp11_department == 75 ~ "Senter for psykisk helse og rusbehandling Tromsø og omegn, døgnseksjon",
+                                   emp11_department == 76 ~ "Psykiatri og rusbehandling, avrusning og utredning", 
+                                   
+                                   FALSE ~ "Uspesifisert"),
+         tilsett = case_when(mce_supervision == 1 ~ "Ja", 
+                             mce_supervision == 2 ~ "Nei - ikke behov", 
+                             mce_supervision == 3 ~ "Nei - ikke kapasitet", 
+                             mce_supervision == 4 ~ "Nei - ikke prioritert, men gitt råd",
+                             mce_supervision == 5 ~ "Nei - Annen årsak", 
+                             is.na(mce_supervision) ~ "Mangler verdi", 
+                             FALSE ~ "Annet"))
+
+# Finne fordelingen av antall tilsyn per avdeling, fordelt på de ulike formene for tilsyn
+
+# Først gather for å gjøre data "long" og typene tilsyn blir kategoriene i en variabel. Disse endres til norske navn
+# samtidig må datoene også bli long slik at man får inn datoene per forløp. 
+# Bytter ut dem som er missing med 0, siden det er da 0 tilsyn. 
+# I tillegg lager vi en variabel for måneder, og en med årsaker til at pasienten ikke har fått tilsyn 
+
+tilsyn_full = d_full %>% select(pasientid, forlopsid, emp22_caregiver_doctor_times, emp22_caregiver_psychologist_times, 
+                                emp22_caregiver_social_worker_times, avdeling_navn, mce_supervision, tilsett, 
+                                emp22_caregiver_nurse_times, emp22_caregiver_physiotherapist_times, emp11_department, 
+                                emp22_consultations, mce_registered_date) %>% 
+  gather(key = tilsynstype, value=antall, 
+         emp22_caregiver_doctor_times, emp22_caregiver_psychologist_times, 
+         emp22_caregiver_social_worker_times, 
+         emp22_caregiver_nurse_times, emp22_caregiver_physiotherapist_times,
+         emp22_consultations) %>% 
+  mutate(antall = replace(antall, is.na(antall), 0), 
+         month = month(mce_registered_date),
+         
+         tilsynstype=str_replace_all(tilsynstype,"emp22_caregiver_doctor_times", 
+                                     "Lege"),
+         tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_nurse_times",
+                                     "Sykepleier"), 
+         tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_physiotherapist_times", 
+                                     "Fysioterapeut"),
+         tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_psychologist_times", 
+                                     "Psykolog"),
+         tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_social_worker_times", 
+                                     "Sosionom"),
+         tilsynstype=str_replace_all(tilsynstype, "emp22_consultations", 
+                                     "Total"),
+         yearmonth = as.yearmon(mce_registered_date))
+
+
+# Lage månedsnavn i rekkefølge slik som de er i året
+
+manednamn = months(as.Date(paste0("2017-",1:12,"-01")))
+
+tilsyn_full = tilsyn_full %>% mutate(monthname = factor(months(mce_registered_date), levels = manednamn)) 
+
+# Filtrer på de som har fått tilsyn
+
+tilsyn = tilsyn_full %>% filter(mce_supervision == 1)
+
+# Det viser seg at man kan ha 0 totale tilsyn til tross pasienten har tilsett = ja,
+# og ha tilsyn på andre typer (lege, sykepleier osv.) til tross 
+# tilsett = nei. Dette er hvis legen (eller andre behandlere) har 
+# kommet bort  til avdelingen, men pasienten
+# er bevisstløs eller lignende. 
+
+# Med koden nedenfor kan vi sjekke at ingen har svart "ja" som ikke har en verdi for "Totale" tilsyn
+# og identifisere hvem det er
+
+# tilsyn %>% filter(mce_supervision == 1, antall == 0, tilsynstype == "Total")
+# 
+# ingentilsyn_pers = tilsyn %>% 
+#   filter(pasientid == "261"|  pasientid == "279" | 
+#          pasientid == "285" | pasientid =="336") %>% 
+#   select(pasientid, forlopsid, tilsynstype, antall) %>% arrange(pasientid)
+
+
+# regne ut frekvens av hver "antall"-kategori for hver avdeling
+
+tilsyn_avdeling = tilsyn %>% group_by(tilsynstype, emp11_department, avdeling_navn)  %>% count(antall) %>% ungroup %>% 
+  mutate(emp11_department=fct_reorder(factor(emp11_department), -n, sum))
+
+# Antall tilsyn for pasienter som kom in in viss måned
+
+# fixme! skal måneder baseres på startdato eller dato for registrering (utfylling av skjema)?
+
+tilsyn_maned = tilsyn %>% group_by(tilsynstype, month, monthname)  %>% count(antall) %>% arrange(month)
+
+#Totalt Antall tilsyn for pasienter som kom in in viss måned per avdeling
+
+tilsyn_maned_avdeling = tilsyn %>% group_by(tilsynstype, monthname, emp11_department)  %>% count(antall) 
+
+@
+
         <<label = rapport, echo = FALSE, include = FALSE>>=
         
         #Søylediagram over antall tilsyn per måned. Med argumentet maaned = "Alle"
