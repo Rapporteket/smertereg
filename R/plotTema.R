@@ -14,21 +14,21 @@ colKontr="#FF7260"                                    # Kontrastfarge
 # ggplot2-tema for figurar
 if(!exists("skriftstorleik")) # Skriftstorleik bør vera definert i kvar årsrapportfil
   skriftstorleik = 13
-tema = theme_light(base_size=skriftstorleik)
+tema = ggplot2::theme_light(base_size=skriftstorleik)
 tema$panel.grid.minor$colour="white"
 tema$strip.background$fill="#f3f1ee"
 tema$strip.background$colour="#e4e0da"
 tema$strip.text.x$colour="black"
-tema$panel.spacing=unit("13" ,"pt")
+tema$panel.spacing=grid::unit("13" ,"pt")
 tema$panel.border$colour=tema$strip.background$colour
 tema$panel.grid.major$colour=tema$strip.background$colour
 tema$panel.grid.minor$colour=tema$strip.background$fill
 tema$axis.title.y$angle=0
-tema$axis.title.y$margin=margin(r=5)
-tema$axis.title.x$margin=margin(t=5)
+tema$axis.title.y$margin=ggplot2::margin(r=5)
+tema$axis.title.x$margin=ggplot2::margin(t=5)
 
 # Fjern vannrette eller loddrette rutenett
-fjern_x = theme(panel.grid.major.x = element_blank(),
-                panel.grid.minor.x = element_blank())
-fjern_y = theme(panel.grid.major.y = element_blank(),
-                panel.grid.minor.y = element_blank())
+fjern_x = ggplot2::theme(panel.grid.major.x = ggplot2::element_blank(),
+                panel.grid.minor.x = ggplot2::element_blank())
+fjern_y = ggplot2::theme(panel.grid.major.y = ggplot2::element_blank(),
+                panel.grid.minor.y = ggplot2::element_blank())
