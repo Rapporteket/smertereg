@@ -112,7 +112,7 @@ les_oqr_kb = function(adresse) {
   }
   
   # Oversikt over variabeltypar i OQR og tilhøyrande standardnamn som me brukar
-  vartype_oqr_standard = tribble(
+  vartype_oqr_standard = tibble::tribble(
     ~type_oqr, ~type_standard,
     "Listevariabel", "kategorisk",
     "Tekstvariabel", "tekst",
@@ -147,7 +147,7 @@ les_oqr_kb = function(adresse) {
   ekstra_namn = c("oqr_variabel_id_engelsk", "oqr_variabel_id_norsk")
   
   # Ta med dei namna me brukar, i fornuftig rekkjefølgje
-  kodebok = kodebok %>% select_(.dots=c(std_namn, ekstra_namn))
+  kodebok = kodebok %>% dplyr::select_(.dots=c(std_namn, ekstra_namn))
   
   # Returner kodeboka 
   kodebok
