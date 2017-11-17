@@ -21,10 +21,10 @@ Imports:
   zoo,
   ggplot2,
   colorspace,
-  purr,
+  purrr,
   binom,
-  Hmisc
-  
+  Hmisc,
+  magrittr
 Remotes:
-  github::yihui/printr
-  github::Rapporteket/rapbase 
+  yihui/printr
+  Rapporteket/rapbase 
