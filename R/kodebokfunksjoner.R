@@ -81,8 +81,8 @@ les_oqr_kb = function(adresse) {
            kommentar_rimeleg = NA_character_,
            utrekningsformel = NA_character_,
            logikk = NA_character_,
-           obligatorisk = str_to_lower(obligatorisk),
-           variabel_id = str_to_lower(variabel_id))
+           obligatorisk = stringr::str_to_lower(obligatorisk),
+           variabel_id = stringr::str_to_lower(variabel_id))
   
   # Ein «Statusvariabel» er eigentleg ein kategorisk variabel
   # som kan ta tre verdiar, -1, 0 og 1 (oppretta, lagra og ferdigstilt).
