@@ -37,6 +37,8 @@ context <- Sys.getenv("R_RAP_INSTANCE")
 
 if (context == "TEST" | context == "QA" | context == "PRODUCTION") {
   kb <- les_oqr_kb(system.file("SmerteReg_klokeboken.05.10.2017.csv", package = "smertereg"))
+  dat <- smerteGetRegDataFromRapporteketDb()
+  d_full <- transformRegData(dat, kb)
 } else {
   
   # Hovudmappa der alt ligg
