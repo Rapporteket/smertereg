@@ -9,37 +9,37 @@ options(stringsAsFactors = FALSE)
 #' 
 #' @export 
 les_oqr_kb = function(adresse) {
-  kodebok_oqr_format = read_delim(
+  kodebok_oqr_format = readr::read_delim(
     adresse, 
     delim = ";", quote="\"",
-    col_types = cols(
-      skjemanavn = col_character(),
-      navn_i_rapporteket = col_character(),
-      ledetekst = col_character(),
-      obligatorisk = col_character(),
-      type = col_character(),
-      listeverdier = col_character(),
-      listetekst = col_character(),
-      normalintervall_start_numerisk = col_character(), # Sjå merknad nedanfor om årsaka til denne og dei tre neste må vera tekst
-      normalintervall_slutt_numerisk = col_character(),
-      maksintervall_start_numerisk = col_character(),
-      maksintervall_slutt_numerisk = col_character(),
-      normalintervall_start_dato = col_character(),
-      normalintervall_slutt_dato = col_character(),
-      maksintervall_start_dato = col_character(),
-      maksintervall_slutt_dato = col_character(),
-      antall_tegn = col_integer(),
-      lovlige_tegn = col_character(),
-      desimaler = col_integer(),
-      aktiveringsspoersmaal = col_character(),
-      underspoersmaal = col_character(),
-      innfoert_dato = col_character(),
-      utfaset_dato = col_character(),
-      tabell = col_character(),
-      fysisk_feltnavn = col_character(),
-      kommentar = col_character(),
-      variabel_id = col_character(),
-      hjelpetekst = col_character()
+    col_types = readr::cols(
+      skjemanavn = readr::col_character(),
+      navn_i_rapporteket = readr::col_character(),
+      ledetekst = readr::col_character(),
+      obligatorisk = readr::col_character(),
+      type = readr::col_character(),
+      listeverdier = readr::col_character(),
+      listetekst = readr::col_character(),
+      normalintervall_start_numerisk = readr::col_character(), # Sjå merknad nedanfor om årsaka til denne og dei tre neste må vera tekst
+      normalintervall_slutt_numerisk = readr::col_character(),
+      maksintervall_start_numerisk = readr::col_character(),
+      maksintervall_slutt_numerisk = readr::col_character(),
+      normalintervall_start_dato = readr::col_character(),
+      normalintervall_slutt_dato = readr::col_character(),
+      maksintervall_start_dato = readr::col_character(),
+      maksintervall_slutt_dato = readr::col_character(),
+      antall_tegn = readr::col_integer(),
+      lovlige_tegn = readr::col_character(),
+      desimaler = readr::col_integer(),
+      aktiveringsspoersmaal = readr::col_character(),
+      underspoersmaal = readr::col_character(),
+      innfoert_dato = readr::col_character(),
+      utfaset_dato = readr::col_character(),
+      tabell = readr::col_character(),
+      fysisk_feltnavn = readr::col_character(),
+      kommentar = readr::col_character(),
+      variabel_id = readr::col_character(),
+      hjelpetekst = readr::col_character()
     ))
   
   # Dei numeriske min- og maksverdiane kan ifølgje dokumentasjonen
@@ -58,7 +58,7 @@ les_oqr_kb = function(adresse) {
   #  gjer so godt me kan, og set verdiar til NA der
   #  det ikkje finst nokon tilsvarande.)
   kodebok = kodebok_oqr_format %>% 
-    mutate(skjema_id = tabell,
+    dplyr::mutate(skjema_id = tabell,
            skjemanamn = skjemanavn,
            oqr_variabel_id_norsk = navn_i_rapporteket,
            oqr_variabel_id_engelsk = variabel_id,
