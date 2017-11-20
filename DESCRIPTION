@@ -27,5 +27,5 @@ Imports:
   magrittr,
   tibble
 Remotes:
-  yihui/printr
+  yihui/printr,
   Rapporteket/rapbase 
