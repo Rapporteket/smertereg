@@ -26,7 +26,7 @@
 		<defaultValueExpression><![CDATA[new String("smertereg")]]></defaultValueExpression>
 	</parameter>
 	<parameter name="reportFileName" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA[new String("maanedsrapport")]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[new String("rapport_maaned")]]></defaultValueExpression>
 	</parameter>
 	<parameter name="useKnitr" class="java.lang.Integer" isForPrompting="false">
 		<parameterDescription><![CDATA[Set to 1 if Knitr processing, 0 if Sweave]]></parameterDescription>
