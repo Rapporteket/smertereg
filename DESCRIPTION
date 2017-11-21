@@ -24,7 +24,6 @@ Imports:
   purrr,
   binom,
   Hmisc,
-  magrittr,
   tibble
 Remotes:
   yihui/printr,
