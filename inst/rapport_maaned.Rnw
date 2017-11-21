@@ -913,31 +913,31 @@ total_avdeling_soyle=paste0("Antall pasienttilsyn per avdeling.
                                     I denne sammenheng kan en pasient ha hatt tilsyn fra flere 
                                     sykehuspersonell samtidig. Basert på 
                                     ",tot_antall$sum," pasienttilsyn hos 
-                                    ",nrow(tilsyn %>% filter(tilsynstype == "Total") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                                    ",nrow(tilsyn %>% dplyr::filter(tilsynstype == "Total") %>% dplyr::distinct(pasientid, .keep_all = TRUE))," pasienter.
                                     ")
 
 beh_avdeling_soyle=paste0("Antall behandlertilsyn per avdeling. 
                                 Dette er summen av alle tilsyn pasienten har fått fra ulike sykehuspersonell, selv om to ulike behandlere
                                 var til stede på et tilsyn samtidig. 
                                 Basert på ",sum_typer_antall$sum," behandlertilsyn,
-                                hos ",nrow(tilsyn %>% filter(tilsynstype != "Total") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+                                hos ",nrow(tilsyn %>% dplyr::filter(tilsynstype != "Total") %>% dplyr::distinct(pasientid, .keep_all = TRUE))," pasienter.")
 
 lege_avdeling_soyle=paste0("Antall legetilsyn per avdeling. Basert på ",lege_antall$sum," legetilsyn hos 
-                                 ",nrow(tilsyn %>% filter(tilsynstype == "Lege") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+                                 ",nrow(tilsyn %>% dplyr::filter(tilsynstype == "Lege") %>% dplyr::distinct(pasientid, .keep_all = TRUE))," pasienter.")
 
 syk_avdeling_soyle=paste0("Antall sykepleiertilsyn per avdeling. Basert på ",syk_antall$sum," sykepleiertilsyn hos 
-                                ",nrow(tilsyn %>% filter(tilsynstype == "Sykepleier") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.
+                                ",nrow(tilsyn %>% dplyr::filter(tilsynstype == "Sykepleier") %>% dplyr::distinct(pasientid, .keep_all = TRUE))," pasienter.
                                 Figuren er satt i rekkefølge fra avdelingen med flest antall tilsyn til avdelingen med færrest antall tilsyn.")
 
 fys_avdeling_soyle=paste0("Antall tilsyn fra fysioterapeut per avdeling. Basert på ",fys_antall$sum," fysioterapeuttilsyn hos 
-                                ",nrow(tilsyn %>% filter(tilsynstype == "Fysioterapeut") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+                                ",nrow(tilsyn %>% dplyr::filter(tilsynstype == "Fysioterapeut") %>% dplyr::distinct(pasientid, .keep_all = TRUE))," pasienter.")
 
 sos_avdeling_soyle=paste0("Antall tilsyn fra sosionom per avdeling. Basert på ",sos_antall$sum," sosionomtilsyn hos 
-                                ",nrow(tilsyn %>% filter(tilsynstype == "Sosionom") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+                                ",nrow(tilsyn %>% dplyr::filter(tilsynstype == "Sosionom") %>% dplyr::distinct(pasientid, .keep_all = TRUE))," pasienter.")
 
 psyk_avdeling_soyle=paste0("Antall tilsyn fra psykolog per avdeling. Basert på 
                                  ",psyk_antall$sum," psykologtilsyn hos 
-                                 ",nrow(tilsyn %>% filter(tilsynstype == "Psykolog") %>% distinct(pasientid, .keep_all = TRUE))," pasienter.")
+                                 ",nrow(tilsyn %>% dplyr::filter(tilsynstype == "Psykolog") %>% dplyr::distinct(pasientid, .keep_all = TRUE))," pasienter.")
 
 
 
@@ -945,104 +945,108 @@ psyk_avdeling_soyle=paste0("Antall tilsyn fra psykolog per avdeling. Basert på
 @
 
 <<echo = FALSE, include = FALSE, fig.cap = total_avdeling_soyle, fig.show=total_avdeling_soyle>>=
-        
-        tilsyn_avdeling_uten_total = sum_tilsyn_avdeling %>% filter(avdeling_navn != "Total")
-      
-      # Lage rekkefølge fra største til minste avdeling
-      
-      avdelingnamn = tilsyn_avdeling_uten_total %>% arrange(desc(behandlertilsyn)) %>%  extract2("avdeling_navn")
-      
-      tilsyn_avdeling_uten_total = tilsyn_avdeling_uten_total %>% mutate(avdelingsnavn = factor(avdeling_navn, levels = avdelingnamn)) 
-      
-      
-      #Lage plot funksjon for liknende plott for hver tilsynstype
-      plot_sum_tilsyn_avdeling = function(d, tilsynstype, ylabtekst){
-        
-        # Lage rekkefølge fra største til minste avdeling
-        
-        avdelingnamn = d %>% arrange(desc(tilsynstype)) %>%
-          extract2("avdeling_navn")
-        
-        d = d %>% 
-          mutate(avdelingsnavn = factor(avdeling_navn, levels = avdelingnamn)) 
-        
-        ggplot(d, aes(x = avdeling_navn, y = tilsynstype)) +
-          geom_bar(stat='identity', width=2/3, fill="Hotpink3") + coord_flip() +
-          xlab("Avdeling") + ylab(ylabtekst) + tema + fjern_y +
-          scale_x_discrete(limits = rev(levels(d$avdelingsnavn)))
-        
-      }
-      
-      plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Total, ylabtekst = "Antall pasienttilsyn")
-      
-      
-      
-      @
-        
-        <<echo = FALSE, include = TRUE, fig.cap = beh_avdeling_soyle, fig.show=lege_avdeling_soyle>>=
-        plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$behandlertilsyn, ylabtekst = "Antall behandlertilsyn")
-      @
-        
-        <<echo = FALSE, include = TRUE, fig.cap = lege_avdeling_soyle, fig.show=lege_avdeling_soyle>>=
-        
-        plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Lege, 
-                                 ylabtekst = "Antall legetilsyn")
-      
-      @
-        
-        <<echo = FALSE, include = TRUE, fig.cap = syk_avdeling_soyle, fig.show=syk_avdeling_soyle>>=
-        
-        plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Sykepleier, 
-                                 ylabtekst = "Antall sykepleiertilsyn")
-      @
-        
-        <<echo = FALSE, include = TRUE, fig.cap = psyk_avdeling_soyle, fig.show=psyk_avdeling_soyle>>=
-        
-        plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Psykolog, 
-                                 ylabtekst = "Antall psykologtilsyn")
-      
-      @
-        
-        <<echo = FALSE, include = TRUE, fig.cap = fys_avdeling_soyle, fig.show=fys_avdeling_soyle>>=
-        plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Fysioterapeut, 
-                                 ylabtekst = "Antall fysioterapeuttilsyn")
-      
-      @
-        
-        \clearpage
-      \section{Antall tilsyn flest pasienter får per avdeling}
-      
-      For å finne ut hvor mange tilsyn pasientene
-      får per per avdeling, ser vi under noen grafer som teller opp hvor mange pasienter som
-      får $1,2,3,\dots$ tilsyn.
-      
-      <<echo = FALSE, include = TRUE, fig.cap = total_avdeling, fig.show=total_avdeling>>=
-        plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Total", avdeling = "Alle", xlabtekst = "Antall pasienttilsyn")
-      
-      @
-        
-        <<echo = FALSE, include = TRUE, fig.cap = alle_avdeling, fig.show=total_avdeling>>=
-        
-        plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Alle", avdeling = "Alle", xlabtekst = "Antall behandlertilsyn")
-      
-      @
-        
-        <<echo = FALSE, include = TRUE, fig.cap = lege_avdeling, fig.show=total_avdeling>>=
-        
-        plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Lege", avdeling = "Alle", xlabtekst = "Antall legetilsyn")
-      
-      @
-        
-        <<echo = FALSE, include = TRUE, fig.cap = syk_avdeling, fig.show=total_avdeling>>=
-        
-        plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Sykepleier", avdeling = "Alle", xlabtekst = "Antall sykepleiertilsyn")
-      
-      @
-        
-        <<echo = FALSE, include = TRUE, fig.cap = psyk_avdeling, fig.show=total_avdeling>>=
-        
-        plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Psykolog", avdeling = "Alle", xlabtekst = "Antall tilsyn fra psykolog")
-      
-      @
-        
-        \end{document}
+
+# fixme?
+library(magrittr)
+library(ggplot2)
+
+tilsyn_avdeling_uten_total = sum_tilsyn_avdeling %>% dplyr::filter(avdeling_navn != "Total")
+
+# Lage rekkefølge fra største til minste avdeling
+
+avdelingnamn = tilsyn_avdeling_uten_total %>% dplyr::arrange(desc(behandlertilsyn)) %>%  extract2("avdeling_navn")
+
+tilsyn_avdeling_uten_total = tilsyn_avdeling_uten_total %>% dplyr::mutate(avdelingsnavn = factor(avdeling_navn, levels = avdelingnamn)) 
+
+
+#Lage plot funksjon for liknende plott for hver tilsynstype
+plot_sum_tilsyn_avdeling = function(d, tilsynstype, ylabtekst){
+  
+  # Lage rekkefølge fra største til minste avdeling
+  
+  avdelingnamn = d %>% dplyr::arrange(desc(tilsynstype)) %>%
+    extract2("avdeling_navn")
+  
+  d = d %>% 
+    dplyr::mutate(avdelingsnavn = factor(avdeling_navn, levels = avdelingnamn)) 
+  
+  ggplot(d, aes(x = avdeling_navn, y = tilsynstype)) +
+    geom_bar(stat='identity', width=2/3, fill="Hotpink3") + coord_flip() +
+    xlab("Avdeling") + ylab(ylabtekst) + tema + fjern_y +
+    scale_x_discrete(limits = rev(levels(d$avdelingsnavn)))
+  
+}
+
+plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Total, ylabtekst = "Antall pasienttilsyn")
+
+
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = beh_avdeling_soyle, fig.show=lege_avdeling_soyle>>=
+plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$behandlertilsyn, ylabtekst = "Antall behandlertilsyn")
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = lege_avdeling_soyle, fig.show=lege_avdeling_soyle>>=
+
+plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Lege, 
+                         ylabtekst = "Antall legetilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = syk_avdeling_soyle, fig.show=syk_avdeling_soyle>>=
+
+plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Sykepleier, 
+                         ylabtekst = "Antall sykepleiertilsyn")
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = psyk_avdeling_soyle, fig.show=psyk_avdeling_soyle>>=
+
+plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Psykolog, 
+                         ylabtekst = "Antall psykologtilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = fys_avdeling_soyle, fig.show=fys_avdeling_soyle>>=
+plot_sum_tilsyn_avdeling(tilsyn_avdeling_uten_total, tilsynstype = tilsyn_avdeling_uten_total$Fysioterapeut, 
+                         ylabtekst = "Antall fysioterapeuttilsyn")
+
+@
+
+\clearpage
+\section{Antall tilsyn flest pasienter får per avdeling}
+
+For å finne ut hvor mange tilsyn pasientene
+får per per avdeling, ser vi under noen grafer som teller opp hvor mange pasienter som
+får $1,2,3,\dots$ tilsyn.
+
+<<echo = FALSE, include = TRUE, fig.cap = total_avdeling, fig.show=total_avdeling>>=
+plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Total", avdeling = "Alle", xlabtekst = "Antall pasienttilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = alle_avdeling, fig.show=total_avdeling>>=
+
+plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Alle", avdeling = "Alle", xlabtekst = "Antall behandlertilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = lege_avdeling, fig.show=total_avdeling>>=
+
+plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Lege", avdeling = "Alle", xlabtekst = "Antall legetilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = syk_avdeling, fig.show=total_avdeling>>=
+
+plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Sykepleier", avdeling = "Alle", xlabtekst = "Antall sykepleiertilsyn")
+
+@
+
+<<echo = FALSE, include = TRUE, fig.cap = psyk_avdeling, fig.show=total_avdeling>>=
+
+plot_tilsyn_avdeling(d = tilsyn_avdeling, type_tilsyn = "Psykolog", avdeling = "Alle", xlabtekst = "Antall tilsyn fra psykolog")
+
+@
+
+\end{document}
