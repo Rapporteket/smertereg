@@ -33,9 +33,9 @@ transformRegData <- function(dat, meta, is_var_lang_no = TRUE) {
   }
   
   # meta names
-  varnamn <- meta$variabel_id[match(names(dat), meta[[dd_kolid]])] %>%
+  d_full <- meta$variabel_id[match(names(dat), meta[[dd_kolid]])] %>%
     dplyr::coalesce(names(dat))
   
   # meta entry ids
-  kb_info = meta %>% dplyr::distinct(variabel_id, .keep_all = TRUE)
+  # kb_info = meta %>% dplyr::distinct(variabel_id, .keep_all = TRUE)
 }
