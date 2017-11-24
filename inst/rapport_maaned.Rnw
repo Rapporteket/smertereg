@@ -376,7 +376,7 @@ plot_tilsyn_avdeling = function(d, type_tilsyn, avdeling, xlabtekst){
     dplyr::group_by(avdeling_navn) %>% 
     dplyr::mutate(maksn = max(n)) %>%
     dplyr::filter(maksn>5) %>%
-    dplyr::ungroup
+    dplyr::ungroup()
   
   if (type_tilsyn == "Alle") {
     d = d %>% dplyr::filter(tilsynstype != "Total", antall != 0)
