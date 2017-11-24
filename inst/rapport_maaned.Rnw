@@ -540,10 +540,7 @@ library(ggplot2)
 
 linje_tilsyn_per_maaned = function(d, type_tilsyn, ylabtekst){
   
-  # Are: how can this cast to Posix (as.Date) possibly work? yearmonth is defined a string like "Nov. 2017"
-  #d = d %>% dplyr::mutate(yearmonth_date = as.Date(yearmonth), yearmonth = as.character(yearmonth))
-  # Suggest something like, but may not provide what is needed:
-  d = d %>% dplyr::mutate(yearmonth_date = mce_registered_date, yearmonth = as.character(yearmonth))
+  d = d %>% dplyr::mutate(yearmonth_date = as.Date(yearmonth), yearmonth = as.character(yearmonth))
   
   graf0 = ggplot(d, aes(x = yearmonth_date, y  = snitt, ymin = min, ymax = maks)) +
     geom_line(colour="darkorchid1", size = 1) +   
