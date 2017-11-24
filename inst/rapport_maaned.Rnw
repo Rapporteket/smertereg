@@ -247,17 +247,17 @@ tilsyn_full = d_full %>% dplyr::select(pasientid, forlopsid, emp22_caregiver_doc
   dplyr::mutate(antall = replace(antall, is.na(antall), 0), 
          month = lubridate::month(mce_registered_date),
          
-         tilsynstype=str_replace_all(tilsynstype,"emp22_caregiver_doctor_times", 
+         tilsynstype=stringr::str_replace_all(tilsynstype,"emp22_caregiver_doctor_times", 
                                      "Lege"),
-         tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_nurse_times",
+         tilsynstype=stringr::str_replace_all(tilsynstype, "emp22_caregiver_nurse_times",
                                      "Sykepleier"), 
-         tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_physiotherapist_times", 
+         tilsynstype=stringr::str_replace_all(tilsynstype, "emp22_caregiver_physiotherapist_times", 
                                      "Fysioterapeut"),
-         tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_psychologist_times", 
+         tilsynstype=stringr::str_replace_all(tilsynstype, "emp22_caregiver_psychologist_times", 
                                      "Psykolog"),
-         tilsynstype=str_replace_all(tilsynstype, "emp22_caregiver_social_worker_times", 
+         tilsynstype=stringr::str_replace_all(tilsynstype, "emp22_caregiver_social_worker_times", 
                                      "Sosionom"),
-         tilsynstype=str_replace_all(tilsynstype, "emp22_consultations", 
+         tilsynstype=stringr::str_replace_all(tilsynstype, "emp22_consultations", 
                                      "Total"),
          yearmonth = zoo::as.yearmon(mce_registered_date))
 
