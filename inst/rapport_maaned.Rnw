@@ -596,13 +596,13 @@ tilsyn_per_maaned = tilsyn %>%
   dplyr::group_by(tilsynstype, month, yearmonth) %>% 
   dplyr::summarise(snitt=mean(antall) %>% round(1),
             min=t.test(antall)$conf.int[1] %>% round(1),
-            maks=t.test(antall)$conf.int[2] %>% round(1)) %>% dplyr::ungroup
+            maks=t.test(antall)$conf.int[2] %>% round(1)) %>% dplyr::ungroup()
 
 # lag gjennomsnitt behandlertilsyn per måned
 behandlertilsyn = tilsyn %>% dplyr::filter(tilsynstype != "Total") %>% dplyr::group_by(month, yearmonth) %>%   
   dplyr::summarise(snitt=mean(antall) %>% round(1),
             min=t.test(antall)$conf.int[1] %>% round(1),
-            maks=t.test(antall)$conf.int[2] %>% round(1)) %>% dplyr::mutate (tilsynstype = "Behandlertilsyn") %>% dplyr::ungroup
+            maks=t.test(antall)$conf.int[2] %>% round(1)) %>% dplyr::mutate (tilsynstype = "Behandlertilsyn") %>% dplyr::ungroup()
 
 # Samle de to objektene
 tilsyn_per_maaned = dplyr::bind_rows(tilsyn_per_maaned, behandlertilsyn)
