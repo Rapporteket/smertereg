@@ -245,7 +245,7 @@ tilsyn_full = d_full %>% dplyr::select(pasientid, forlopsid, emp22_caregiver_doc
          emp22_caregiver_nurse_times, emp22_caregiver_physiotherapist_times,
          emp22_consultations) %>% 
   dplyr::mutate(antall = replace(antall, is.na(antall), 0), 
-         month = month(mce_registered_date),
+         month = lubridate::month(mce_registered_date),
          
          tilsynstype=str_replace_all(tilsynstype,"emp22_caregiver_doctor_times", 
                                      "Lege"),
@@ -259,7 +259,7 @@ tilsyn_full = d_full %>% dplyr::select(pasientid, forlopsid, emp22_caregiver_doc
                                      "Sosionom"),
          tilsynstype=str_replace_all(tilsynstype, "emp22_consultations", 
                                      "Total"),
-         yearmonth = as.yearmon(mce_registered_date))
+         yearmonth = zoo::as.yearmon(mce_registered_date))
 
 
 # Lage månedsnavn i rekkefølge slik som de er i året
