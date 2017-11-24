@@ -626,7 +626,7 @@ linje_tilsyn_per_maaned(d = tilsyn_per_maaned, type_tilsyn = "Total", ylabtekst 
 
 <<echo = FALSE, message = FALSE, warning = FALSE,include = TRUE, fig.cap = alle_maaned_linje, fig.show=total_maaned_linje>>=
 
-linje_tilsyn_per_maaned(d = tilsyn_per_maaned %>% filter(tilsynstype != "Total"), type_tilsyn = "Alle", ylabtekst = "Gjennomsnittlig\nantall tilsyn")
+linje_tilsyn_per_maaned(d = tilsyn_per_maaned %>% dplyr::filter(tilsynstype != "Total"), type_tilsyn = "Alle", ylabtekst = "Gjennomsnittlig\nantall tilsyn")
 
 @
 
