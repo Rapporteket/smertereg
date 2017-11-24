@@ -28,8 +28,8 @@ smerteGetRegDataFromRapporteketDb <- function() {
   
   dat <- rapbase::LoadRegData(registryName, query)
   
-  #dat$StartdatoTO <- lapply(dat$StartdatoTO, readr::parse_datetime,
-  #                          format = "%Y-%m-%d %H:%M:%S")
+  dat$StartdatoTO <- lapply(dat$StartdatoTO, readr::parse_datetime,
+                            format = "%Y-%m-%d")
   
   return(dat)
   
