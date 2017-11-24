@@ -302,7 +302,7 @@ tilsyn_maned = tilsyn %>% dplyr::group_by(tilsynstype, month, monthname)  %>% dp
 
 #Totalt Antall tilsyn for pasienter som kom in in viss måned per avdeling
 
-tilsyn_maned_avdeling = tilsyn %>% dplyr::group_by(tilsynstype, monthname, emp11_department)  %>% count(antall) 
+tilsyn_maned_avdeling = tilsyn %>% dplyr::group_by(tilsynstype, monthname, emp11_department)  %>% dplyr::count(antall) 
 
 @
 
