@@ -311,6 +311,7 @@ tilsyn_maned_avdeling = tilsyn %>% dplyr::group_by(tilsynstype, monthname, emp11
 # fixme?
 library(magrittr)
 library(ggplot2)
+library(plyr)
 
 #Søylediagram over antall tilsyn per måned. Med argumentet maaned = "Alle"
 # får man en figur med plots for hver måned.
