@@ -42,8 +42,8 @@ message(paste("Current context:", context))
 if (context == "TEST" | context == "QA" | context == "PRODUCTION") {
   message("Processing at Rapporteket")
   kb <- les_oqr_kb(system.file("SmerteReg_klokeboken.05.10.2017.csv", package = "smertereg"))
-  dat <- smerteGetRegDataFromRapporteketDb()
-  d_full <- transformRegData(dat, kb)
+  d_full <- smerteGetRegDataFromRapporteketDb()
+  #d_full <- transformRegData(dat, kb)
 } else {
   
   # Hovudmappa der alt ligg
