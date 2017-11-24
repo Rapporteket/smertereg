@@ -291,8 +291,8 @@ tilsyn = tilsyn_full %>% dplyr::filter(mce_supervision == 1)
 
 # regne ut frekvens av hver "antall"-kategori for hver avdeling
 
-tilsyn_avdeling = tilsyn %>% dplyr::group_by(tilsynstype, emp11_department, avdeling_navn)  %>% dplyr::count(antall) %>% dplyr::ungroup %>% 
-  dplyr::mutate(emp11_department=fct_reorder(factor(emp11_department), -n, sum))
+tilsyn_avdeling = tilsyn %>% dplyr::group_by(tilsynstype, emp11_department, avdeling_navn)  %>% dplyr::count(antall) %>% dplyr::ungroup() %>% 
+  dplyr::mutate(emp11_department=forcats::fct_reorder(factor(emp11_department), -n, sum))
 
 # Antall tilsyn for pasienter som kom in in viss måned
 
