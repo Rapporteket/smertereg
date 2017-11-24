@@ -72,9 +72,9 @@ d_full = d_full %>%
          forlopsid = oqr_forlopsid)
 
 # årets år
-aar = year(Sys.Date())
+aar = lubridate::year(Sys.Date())
 
-d_full = d_full %>% dplyr::filter(year(mce_registered_date) == aar)
+d_full = d_full %>% dplyr::filter(lubridate::year(mce_registered_date) == aar)
 
 # Legg inn navn på avdelinger
 
