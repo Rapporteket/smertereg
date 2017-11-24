@@ -476,7 +476,7 @@ sos_antall = tilsyn %>% dplyr::filter(tilsynstype == "Sosionom") %>% dplyr::summ
 
 psyk_antall = tilsyn %>% dplyr::filter(tilsynstype == "Psykolog") %>% dplyr::summarise(sum = sum(antall)) 
 
-sum_typer_antall = tilsyn %>% dplyr::filter(tilsynstype != "Total") %>% dplyr::summarise(sum = sum(antall)) 
+sum_typer_antall = tilsyn %>% dplyr::filter(tilsynstype != "Total") %>% dplyr::summarise(sum = sum(antall))
 
 @
 
@@ -499,7 +499,7 @@ antall_henv_maned = tilsyn_full %>% dplyr::distinct(forlopsid, .keep_all = TRUE)
 sum_tilsyn_maned = dplyr::bind_cols(sum_tilsyn_maned, antall_pas_maned[ ,2], antall_henv_maned[ ,2])
 
 # Finne summen av hver tilsynstype
-total_tilsyn_maned = dplyr::summarise_all(sum_tilsyn_maned[,-1], funs(sum))
+total_tilsyn_maned = dplyr::summarise_all(sum_tilsyn_maned[,-1], dplyr::funs(sum))
 
 sum_tilsyn_maned = dplyr::bind_rows(sum_tilsyn_maned, total_tilsyn_maned)
 
