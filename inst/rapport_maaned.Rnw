@@ -878,7 +878,7 @@ antall_pas_avdeling = tilsyn %>% dplyr::distinct(pasientid, .keep_all = TRUE) %>
 sum_tilsyn_avdeling = dplyr::bind_cols(sum_tilsyn_avdeling, antall_pas_avdeling[,2])
 
 # Finne summen av hver tilsynstype
-total_tilsyn_avdeling =  dplyr::summarise_all(sum_tilsyn_avdeling[,-1], funs(sum))
+total_tilsyn_avdeling =  dplyr::summarise_all(sum_tilsyn_avdeling[,-1], dplyr::funs(sum))
 
 sum_tilsyn_avdeling = dplyr::bind_rows(sum_tilsyn_avdeling, total_tilsyn_avdeling)
 
