@@ -732,7 +732,7 @@ plot_sum_tilsyn_maned(tilsyn_maned_uten_total, tilsynstype = tilsyn_maned_uten_t
 @
 
 \clearpage
-\newline
+%\newline
 \section{Antall tilsyn per pasient}
 
 For å finne ut hvor mange tilsyn pasientene 
