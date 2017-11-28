@@ -419,7 +419,7 @@ ved sykehusene som deltar i SmerteReg.
 
 NB! Denne informasjonen MÅ være med i rapporten (justeres etter ønske): data er
 hentet fra innleggelse ved følgende avdelinger:
-\Sexpr{paste(unique(d_full$emp11_department), collapse = ', '}.
+\Sexpr{paste(unique(d_full$emp11_department), collapse = ', ')}.
 
 En pasient kan ha fått tilsyn fra
 lege, sykepleier, psykolog, sosionom og fysioterapeut. Flere av behandlerne
