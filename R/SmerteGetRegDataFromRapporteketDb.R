@@ -1,9 +1,10 @@
 #' Query registry data from smerte db
 #'
+#' @param reshID key for department from which data is returned
 #' @return a data frame with registry data
 #' @export
 
-smerteGetRegDataFromRapporteketDb <- function() {
+smerteGetRegDataFromRapporteketDb <- function(reshID) {
   
   registryName <- "smerte"
   dbType <- "mysql"
@@ -24,7 +25,10 @@ smerteGetRegDataFromRapporteketDb <- function() {
     AvdRESH
   FROM
     AlleVarNum
-"
+  WHERE
+    AvdRESH ="
+  
+  query <- paste(query, reshID)
   
   dat <- rapbase::LoadRegData(registryName, query)
   
