@@ -415,7 +415,11 @@ plot_tilsyn_avdeling = function(d, type_tilsyn, avdeling, xlabtekst){
 
 \section{Generell informasjon}
 Formålet med denne rapporten er å kartlegge tilsyn utført av «akuttsmerteteamet» 
-ved sykehusene som deltar i SmerteReg. 
+ved sykehusene som deltar i SmerteReg.
+
+NB! Denne informasjonen MÅ være med i rapporten (justeres etter ønske): data er
+hentet fra innleggelse ved følgende avdelinger:
+\Sexpr{unique(d_full$emp11_department)}.
 
 En pasient kan ha fått tilsyn fra
 lege, sykepleier, psykolog, sosionom og fysioterapeut. Flere av behandlerne
