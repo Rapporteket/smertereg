@@ -37,16 +37,13 @@ library(magrittr)
 
 # if at Rapporteket do not use local files
 context <- Sys.getenv("R_RAP_INSTANCE")
-message(paste("Current context:", context))
 
 if (context == "TEST" | context == "QA" | context == "PRODUCTION") {
-  message("Processing at Rapporteket")
   kb <- les_oqr_kb(system.file("SmerteReg_klokeboken.05.10.2017.csv", package = "smertereg"))
   d_full <- smerteGetRegDataFromRapporteketDb()
   # at Rapporteket figs must be placed "flat", i.e. no subdir
   knitr::opts_knit$set(root.dir = './')
   knitr::opts_chunk$set(fig.path='')
-  #d_full <- transformRegData(dat, kb)
 } else {
   
   # Hovudmappa der alt ligg
