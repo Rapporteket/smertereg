@@ -1,10 +1,11 @@
 #' Query registry data from smerte db
 #'
-#' @param reshID key for department from which data is returned
+#' @param avdresh_vector vector of key(s) for department(s) from which data is
+#' returned
 #' @return a data frame with registry data
 #' @export
 
-smerteGetRegDataFromRapporteketDb <- function(reshID) {
+smerteGetRegDataFromRapporteketDb <- function(avdresh_vector) {
   
   registryName <- "smerte"
   dbType <- "mysql"
@@ -28,7 +29,8 @@ smerteGetRegDataFromRapporteketDb <- function(reshID) {
 "
   
   if (reshID != 0) {
-    query <- paste(query, "WHERE AvdRESH =", reshID)
+    query <- paste(query, "WHERE AvdRESH IN (",
+                   paste(avdresh_vector, collapse = ', '), ")")
   }
   
   
