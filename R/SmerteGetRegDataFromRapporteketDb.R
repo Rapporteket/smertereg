@@ -28,10 +28,8 @@ smerteGetRegDataFromRapporteketDb <- function(avdresh_vector) {
     AlleVarNum
 "
   
-  if (reshID != 0) {
-    query <- paste(query, "WHERE AvdRESH IN (",
-                   paste(avdresh_vector, collapse = ', '), ")")
-  }
+  query <- paste(query, "WHERE AvdRESH IN (",
+                 paste(avdresh_vector, collapse = ', '), ")")
   
   
   dat <- rapbase::LoadRegData(registryName, query)
