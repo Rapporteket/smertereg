@@ -47,7 +47,6 @@
 		<parameterDescription><![CDATA[Year from which data are used]]></parameterDescription>
 		<defaultValueExpression><![CDATA[new Integer(2013)]]></defaultValueExpression>
 	</parameter>
-	<!--
 	<parameter name="beginDate" class="java.util.Date">
 		<defaultValueExpression><![CDATA[new SimpleDateFormat("yyyy-MM-dd").parse("2014-01-01")]]></defaultValueExpression>
 	</parameter>
@@ -58,7 +57,6 @@
 	<parameter name="flervalgsliste" class="java.util.List">
 		<defaultValueExpression><![CDATA[[""]]]></defaultValueExpression>
 	</parameter>
-	-->
 	<queryString language="SQL">
 		<![CDATA[]]>
 	</queryString>
