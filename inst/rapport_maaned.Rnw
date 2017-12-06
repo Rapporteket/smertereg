@@ -114,6 +114,7 @@ d_full = d_full %>%
                                    emp11_department == 33 ~ "Medisinsk p5 vest",  
                                    emp11_department == 34 ~ "Medisinsk p5 nord",
                                    emp11_department == 35 ~ "Intensivmedisinsk",
+                                   emp11_department == 154 ~ "Intensivmedisinsk",
                                    emp11_department == 36 ~ "KK Gyn 1", 
                                    emp11_department == 37 ~ "KK Gyn 2",
                                    emp11_department == 38 ~ "Medisinsk\navd.2 Dialyse",
@@ -128,7 +129,9 @@ d_full = d_full %>%
                                    emp11_department == 86 ~"Utgreiingsmottak 1",
                                    emp11_department == 87 ~ "Utgreiingsmottak 2", 
                                    emp11_department == 152 ~ "Barne- og Ungdomsklinikken p4",
-                                   emp11_department == 153 ~ "Barne- og Ungdomsklinikken p3",  #Her slutter Helse Bergen
+                                   emp11_department == 153 ~ "Barne- og Ungdomsklinikken p3",
+                                   emp11_department == 157 ~ "Kreft post 2",                                                           
+                                   emp11_department == 155 ~ "KSK Postoperativ", #Her slutter Helse Bergen
                                    emp11_department == 90 ~ "Barn 1 medisin sengepost",       #Her begynner St.Olav
                                    emp11_department == 91 ~ "Barn 2 kirurgi sengepost", 
                                    emp11_department == 92 ~ "Barn 3 infeksjon sengepost",
