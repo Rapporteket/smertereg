@@ -883,7 +883,7 @@ sum_tilsyn_avdeling = tilsyn %>%
   tidyr::spread(tilsynstype, antall) %>% dplyr::rowwise() %>% 
   dplyr::mutate(behandlertilsyn = sum(Fysioterapeut, Lege, Psykolog, Sosionom, Sykepleier))
 
-antall_pas_avdeling = tilsyn %>% dplyr::distinct(pasientid, .keep_all = TRUE) %>% dplyr::count(avdeling_navn) 
+antall_pas_avdeling = tilsyn %>% dplyr::distinct(forlopsid, .keep_all = TRUE) %>% dplyr::count(avdeling_navn) 
 
 sum_tilsyn_avdeling = dplyr::bind_cols(sum_tilsyn_avdeling, antall_pas_avdeling[,2])
 
