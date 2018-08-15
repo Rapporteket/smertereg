@@ -130,6 +130,8 @@ d_full = d_full %>% mutate(avdeling_navn = case_when(emp11_department == 4 ~ "Me
                                                            emp11_department == 153 ~ "Barne- og Ungdomsklinikken p3",
                                                            emp11_department == 157 ~ "Kreft post 2",
                                                            emp11_department == 155 ~ "KSK Postoperativ",
+                                                           emp11_department == 158 ~ "Kreft post 1",
+                                                           emp11_department == 159 ~ "Akuttmottak",
                                                            emp11_department == 163 ~ "OT infeksjon",
                                                            emp11_department == 164 ~ "Nevro akutt",
                                                      #Her slutter Helse Bergen
