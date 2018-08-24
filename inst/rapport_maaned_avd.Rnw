@@ -79,7 +79,7 @@ d_full = d_full %>% dplyr::filter(lubridate::year(mce_registered_date) == aar)
 
 # Legg inn navn på avdelinger
 
-d_full = d_full %>% mutate(avdeling_navn = case_when(emp11_department == 4 ~ "Medisinsk p1 Nord",
+d_full = d_full %>% dplyr::mutate(avdeling_navn = case_when(emp11_department == 4 ~ "Medisinsk p1 Nord",
                                                      emp11_department == 5 ~ "Medisinsk\navd.1 Vest",
                                                            emp11_department == 6 ~ "Barneklinikken p4",
                                                            emp11_department == 7 ~ "Barneklinikken p5",
