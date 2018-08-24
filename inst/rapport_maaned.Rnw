@@ -34,6 +34,7 @@
 
 # fixme?
 library(magrittr)
+library(dplyr)
 
 # if at Rapporteket do not use local files
 context <- Sys.getenv("R_RAP_INSTANCE")
