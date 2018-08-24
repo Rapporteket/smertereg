@@ -34,6 +34,7 @@
 
 # fixme?
 library(magrittr)
+library(dplyr)
 
 # if at Rapporteket do not use local files
 context <- Sys.getenv("R_RAP_INSTANCE")
@@ -226,7 +227,7 @@ d_full = d_full %>% dplyr::mutate(avdeling_navn = case_when(emp11_department == 
                                                            emp11_department == 75 ~ "Senter for psykisk helse og rusbehandling Tromsoe? og omegn, døgnseksjon",
                                                            emp11_department == 76 ~ "Psykiatri og rusbehandling, avrusning og utredning", 
                                                            FALSE ~ "Ikke angitt"),
-                                 tilsett = case_when(mce_supervision == 1 ~ "Ja", 
+                                 tilsett = dplyr::case_when(mce_supervision == 1 ~ "Ja", 
                                                      mce_supervision == 2 ~ "Nei - ikke behov", 
                                                      mce_supervision == 3 ~ "Nei - ikke kapasitet", 
                                                      mce_supervision == 4 ~ "Nei - ikke prioritert, men gitt raad",
