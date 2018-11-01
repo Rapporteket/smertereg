@@ -400,7 +400,7 @@ plot_tilsyn_avdeling = function(d, type_tilsyn, avdeling, xlabtekst){
   graf0 = ggplot(d ,aes(x = antall, y =  n, fill=avdeling_navn)) + 
     scale_x_continuous(breaks=breaks_bredde(5), expand=c(0,.5))+
     geom_bar(stat='identity', width=2/3, fill="Hotpink3") + 
-    tema + fjern_x +
+    #tema + fjern_x +
     xlab(xlabtekst) + ylab("Antall pasienter")
   
   
@@ -558,7 +558,9 @@ linje_tilsyn_per_maaned = function(d, type_tilsyn, ylabtekst){
     geom_line(colour="darkorchid1", size = 1) +   
     geom_point(size=2, colour="darkorchid1") +     
     xlab("Måned") + ylab(ylabtekst) +
-    tema + fjern_x + geom_linerange(size=.5, colour="darkorchid1") +
+    #tema +
+    #fjern_x +
+    geom_linerange(size=.5, colour="darkorchid1") +
     theme(axis.text.x  = element_text(angle = 45, vjust = 0.5)) +
     scale_x_date(date_breaks = "2 month", date_labels = "%Y %b")
   
@@ -702,7 +704,7 @@ plot_sum_tilsyn_maned = function(d, tilsynstype, ylabtekst){
   
   ggplot(d, aes(x = monthname, y = tilsynstype)) +
     geom_bar(stat='identity', width=2/3, fill="Hotpink3") + coord_flip() +
-    xlab("Måned") + ylab(ylabtekst) + tema + fjern_y
+    xlab("Måned") + ylab(ylabtekst) # + tema + fjern_y
   
 }
 
@@ -986,7 +988,7 @@ plot_sum_tilsyn_avdeling = function(d, tilsynstype, ylabtekst){
   
   ggplot(d, aes(x = avdeling_navn, y = tilsynstype)) +
     geom_bar(stat='identity', width=2/3, fill="Hotpink3") + coord_flip() +
-    xlab("Avdeling") + ylab(ylabtekst) + tema + fjern_y +
+    xlab("Avdeling") + ylab(ylabtekst) + #tema + fjern_y +
     scale_x_discrete(limits = rev(levels(d$avdelingsnavn)))
   
 }
