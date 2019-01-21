@@ -271,7 +271,7 @@ tilsyn_full = d_full %>% dplyr::select(pasientid, forlopsid, emp22_caregiver_doc
 
 # Lage månedsnavn i rekkefølge slik som de er i året
 
-manednamn = months(as.Date(paste0("2017-",1:12,"-01")))
+manednamn = months(as.Date(paste0("2019-",1:12,"-01")))
 
 tilsyn_full = tilsyn_full %>% dplyr::mutate(monthname = factor(months(mce_registered_date), levels = manednamn)) 
 
