@@ -74,7 +74,8 @@ d_full = d_full %>%
          forlopsid = oqr_forlopsid)
 
 # årets år
-aar = lubridate::year(Sys.Date())
+#aar = lubridate::year(Sys.Date())
+aar = 2018 #new, just for now
 
 d_full = d_full %>% dplyr::filter(lubridate::year(mce_registered_date) == aar)
 
@@ -271,7 +272,8 @@ tilsyn_full = d_full %>% dplyr::select(pasientid, forlopsid, emp22_caregiver_doc
 
 # Lage månedsnavn i rekkefølge slik som de er i året
 
-manednamn = months(as.Date(paste0("2019-",1:12,"-01")))
+#manednamn = months(as.Date(paste0("2019-",1:12,"-01")))
+manednamn = months(as.Date(paste0("2018-",1:12,"-01"))) #new, just for now
 
 tilsyn_full = tilsyn_full %>% dplyr::mutate(monthname = factor(months(mce_registered_date), levels = manednamn)) 
 
